@@ -1,0 +1,36 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: biogeovis-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: 123123
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: biogeovis-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URI: mongodb://admin:123123@mongo:27017
+      MONGO_DB: biogeovis
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    container_name: biogeovis-frontend
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
