@@ -9,7 +9,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: 123123
     volumes:
-      - mongo_data:/data/db
+      - ./mongo_data:/data/db
 
   backend:
     build: ./backend
