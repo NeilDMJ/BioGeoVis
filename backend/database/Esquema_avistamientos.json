@@ -17,14 +17,9 @@
     "Ubicacion": {
         "Pais": "String",
         "Coordenadas": ["Double", "Double"]
-    },
-
-    "Registro": {
-        "Estado_Biologico": "String",
-        "Base_Registro": "String",
-        "Dataset": "String"
     }
 }
+
 
 
 
