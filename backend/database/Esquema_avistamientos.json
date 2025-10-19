@@ -1,0 +1,34 @@
+{
+    "id": "ObjectId",
+    
+    "Taxonomia": {
+        "nombre_cientifico": "String",
+        "Reino": "String",
+        "Filo": "String",
+        "Clase": "String",
+        "Orden": "String",
+        "Familia": "String",
+        "Genero": "String",
+        "Especie": "String"
+    },
+
+    "Fecha_avistamiento": "ISODate",
+
+    "Ubicacion": {
+        "Pais": "String",
+        "Coordenadas": ["Double", "Double"]
+    },
+
+    "Registro": {
+        "Estado_Biologico": "String",
+        "Base_Registro": "String",
+        "Dataset": "String"
+    }
+}
+
+
+
+
+
+
+
