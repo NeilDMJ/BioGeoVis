@@ -8,8 +8,10 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: 123123
+      MONGO_INITDB_DATABASE: biogeovis
     volumes:
       - ./mongo_data:/data/db
+      - ./backend/database/init:/docker-entrypoint-initdb.d
 
   backend:
     build: ./backend
