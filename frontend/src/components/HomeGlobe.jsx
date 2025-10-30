@@ -17,7 +17,9 @@ function HomeGlobe() {
     // Configurar rotación automática para la página de inicio
     globe.controls().autoRotate = true;
     globe.controls().autoRotateSpeed = 0.8;
-    globe.controls().enableZoom = true;
+    globe.controls().enableRotate = false;
+    globe.controls().enableZoom = false;
+    globe.controls().enablePan = false;
 
     // Ajustar tamaño cuando cambia el tamaño de la ventana
     const handleResize = () => {

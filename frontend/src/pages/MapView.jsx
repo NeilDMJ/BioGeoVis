@@ -7,11 +7,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 // Solución para los iconos de marcadores
 const customIcon = L.divIcon({
   html: '<div style="font-size: 24px;">🐸</div>',
-  className: 'my-div-icon', // clase CSS personalizada (opcional)
+  className: 'my-div-icon',
   iconSize: [30, 30]
 });
 
-// Proveedores de tiles posibles. Algunos requieren API key (ver comment).
+// Proveedores de tiles 
 const TILE_PROVIDERS = {
   carto: {
     name: 'CARTO Voyager',
