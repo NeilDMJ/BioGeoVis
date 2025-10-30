@@ -9,18 +9,18 @@ function Explorer() {
   const [countries, setCountries] = useState(null);
   const [markers, setMarkers] = useState([]);
 
-  // Cargar GeoJSON de países
-  useEffect(() => {
-    const url = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
-    fetch(url)
-      .then((r) => r.json())
-      .then((geo) => {
-        setCountries(geo.features);
-      })
-      .catch((err) => {
-        console.error('No se pudo cargar GeoJSON de países:', err);
-      });
-  }, []);
+  // // Cargar GeoJSON de países
+  // useEffect(() => {
+  //   const url = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
+  //   fetch(url)
+  //     .then((r) => r.json())
+  //     .then((geo) => {
+  //       setCountries(geo.features);
+  //     })
+  //     .catch((err) => {
+  //       console.error('No se pudo cargar GeoJSON de países:', err);
+  //     });
+  // }, []);
 
   useEffect(() => {
     // Inicializar el globo
