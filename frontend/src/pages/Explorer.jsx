@@ -9,19 +9,6 @@ function Explorer() {
   const [countries, setCountries] = useState(null);
   const [markers, setMarkers] = useState([]);
 
-  // // Cargar GeoJSON de países
-  // useEffect(() => {
-  //   const url = 'https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson';
-  //   fetch(url)
-  //     .then((r) => r.json())
-  //     .then((geo) => {
-  //       setCountries(geo.features);
-  //     })
-  //     .catch((err) => {
-  //       console.error('No se pudo cargar GeoJSON de países:', err);
-  //     });
-  // }, []);
-
   useEffect(() => {
     // Inicializar el globo
     const globe = Globe()
@@ -138,9 +125,7 @@ function Explorer() {
         position: 'absolute', 
         top: 12, 
         left: 12, 
-        zIndex: 1000, 
-        background: 'rgba(255,255,255,0.9)', 
-        padding: 8, 
+        zIndex: 1000,  
         borderRadius: 8,
         boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
       }}>
