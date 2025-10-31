@@ -20,7 +20,7 @@ function HomeGlobe() {
     globe.controls().enableRotate = false;
     globe.controls().enableZoom = false;
     globe.controls().enablePan = false;
-
+    globe.pointOfView({ altitude: 1.5 }, 0);
     // Ajustar tamaño cuando cambia el tamaño de la ventana
     const handleResize = () => {
       if (globeEl.current) {
