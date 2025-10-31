@@ -67,7 +67,7 @@ function AboutPage() {
                                 <p>
                                     Explora avistamientos de especies en un globo terráqueo 3D interactivo 
                                     que te permite navegar por todo el planeta de manera fluida.
-                                </p>
+                                </p> 
                             </div>
                             <div className="feature-item">
                                 <h3>Mapas Detallados</h3>
