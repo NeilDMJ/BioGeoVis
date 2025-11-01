@@ -1,8 +1,19 @@
+/*constantes de colores*/
+:root {
+    --color-primary: #000000;
+    --color-secondary: #5682B1;
+    --color-accent: #739EC9;
+    --color-text-primary: #FFE8DB;
+    --color-text-secondary: #9ca3af;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
 }
 
 .logo {
@@ -12,10 +23,10 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em var(--color-secondary));
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em var(--color-accent));
 }
 
 @keyframes logo-spin {
@@ -38,5 +49,5 @@
 }
 
 .read-the-docs {
-  color: #888;
+  color: var(--color-text-secondary);
 }
