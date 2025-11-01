@@ -1,0 +1,37 @@
+:root{
+    --color-primary: #000000;
+    --color-secondary: #739EC9;
+    --color-gradient-secondary: #1b3a5a;
+    --color-accent: #739EC9;
+    --color-text-primary: #FFE8DB;
+    --color-text-secondary: #9ca3af;
+}
+
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    background-color: var(--color-primary) ;
+}
+
+.Navbar{
+    border-bottom: 1px solid var(--color-secondary);
+}
+
+.sidebar{
+    border-right: 1px solid var(--color-secondary);
+    width: 14rem;
+    height: calc(100vh - 52px);
+    ul{
+        list-style: none;
+        padding: 1rem 2rem;
+        li{
+            margin-bottom: 1rem;
+            a{
+                text-decoration: none;
+            }
+        }
+    }
+}

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 import HomeGlobe from '../components/HomeGlobe';
 import './Home.css';
 
@@ -22,12 +23,22 @@ function Home() {
           </p>
           
           <div className="cta-buttons">
-            <Link to="/explorer" className="btn btn-primary">
+            <Button 
+              as={Link} 
+              to="/explorer" 
+              variant="primary"
+              size="lg"
+            >
               Explorar Mapa Interactivo
-            </Link>
-            <Link to="/about" className="btn btn-secondary">
+            </Button>
+            <Button 
+              as={Link} 
+              to="/about" 
+              variant="outline-light"
+              size="lg"
+            >
               Conocer Más
-            </Link>
+            </Button>
           </div>
         </div>
 
