@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 
 // Solución para los iconos de marcadores
 const customIcon = L.divIcon({
@@ -61,27 +62,16 @@ function MapView() {
         position: 'absolute', 
         top: 10, 
         left: 10, 
-        zIndex: 1000, 
-        background: 'rgba(255,255,255,0.9)', 
-        padding: 8, 
+        zIndex: 1000,   
         borderRadius: 6,
         boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
       }}>
-        <button 
+        <Button 
           onClick={() => navigate('/explorer')}
-          style={{ 
-            fontSize: 14, 
-            padding: '8px 16px',
-            background: '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: 4,
-            cursor: 'pointer',
-            fontWeight: 600
-          }}
+          variant="primary"
         >
           ← Volver al Globo
-        </button>
+        </Button>
       </div>
 
       {/* Selector de tiles en la esquina superior derecha */}
@@ -90,7 +80,7 @@ function MapView() {
         top: 10, 
         right: 10, 
         zIndex: 1000, 
-        background: 'rgba(255,255,255,0.9)', 
+        background: '#5682B1', 
         padding: 8, 
         borderRadius: 6,
         boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
@@ -105,11 +95,6 @@ function MapView() {
             <option key={key} value={key}>{p.name}</option>
           ))}
         </select>
-        {provider && provider.url && provider.url.includes('YOUR') && (
-          <div style={{ marginTop: 6, color: '#b03636', fontSize: 11 }}>
-            Este proveedor requiere reemplazar YOUR_API_KEY o YOUR_MAPBOX_TOKEN
-          </div>
-        )}
       </div>
 
       {/* Información de coordenadas */}
@@ -118,13 +103,13 @@ function MapView() {
         bottom: 10, 
         left: 10, 
         zIndex: 1000, 
-        background: 'rgba(255,255,255,0.9)', 
+        background: '#5682B1', 
         padding: 10, 
         borderRadius: 6,
         boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
         fontSize: 12
       }}>
-        <div style={{ fontWeight: 600, marginBottom: 4 }}>📍 Ubicación seleccionada</div>
+        <div style={{ fontWeight: 600, marginBottom: 4 }}>Ubicación seleccionada</div>
         <div>Latitud: {clickedLat.toFixed(4)}</div>
         <div>Longitud: {clickedLng.toFixed(4)}</div>
       </div>

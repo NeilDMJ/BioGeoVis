@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 import './About.css';
 
 function AboutPage() {
@@ -36,12 +37,13 @@ function AboutPage() {
     return (
         <div className="about-page">
             {/* Botón de regreso */}
-            <button 
+            <Button 
                 className="back-button"
                 onClick={() => navigate('/')}
+                variant="primary"
             >
-                Volver al Inicio
-            </button>
+                ← Volver al Inicio
+            </Button>
 
             {/* Contenido principal */}
             <div className="about-container">

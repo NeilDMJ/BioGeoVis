@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 import Globe from 'globe.gl';
 
 function Explorer() {
@@ -103,7 +104,7 @@ function Explorer() {
         top: 12, 
         right: 12, 
         zIndex: 1000, 
-        background: 'rgba(255,255,255,0.9)', 
+        background: '#5682B1', 
         padding: 12, 
         borderRadius: 8,
         boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
@@ -112,10 +113,10 @@ function Explorer() {
         <div style={{ fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
            Explorador de Avistamientos
         </div>
-        <div style={{ fontSize: 12, marginBottom: 6, color: '#555' }}>
+        <div style={{ fontSize: 12, marginBottom: 6, color: '#FFE8DB' }}>
           Haz click en cualquier parte del globo para ver el mapa detallado de esa ubicación.
         </div>
-        <div style={{ fontSize: 11, color: '#888', marginTop: 8, fontStyle: 'italic' }}>
+        <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 8, fontStyle: 'italic' }}>
            Usa el mouse para rotar y hacer zoom en el globo
         </div>
       </div>
@@ -129,21 +130,13 @@ function Explorer() {
         borderRadius: 8,
         boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
       }}>
-        <button 
+        <Button 
           onClick={() => navigate('/')} 
-          style={{ 
-            fontSize: 12, 
-            padding: '8px 12px',
-            background: '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: 4,
-            cursor: 'pointer',
-            fontWeight: 600
-          }}
+          variant="primary"
+          size="sm"
         >
           ← Inicio
-        </button>
+        </Button>
       </div>
     </>
   );
