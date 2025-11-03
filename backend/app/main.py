@@ -13,10 +13,16 @@ def read_root():
 
 @app.get("/api/avistamientos")
 def get_all_avistamientos():
+    '''
+    Obtener todos los avistamientos.
+    '''
     pass
 
 @app.get("/api/avistamientos/{id}")
 def get_avistamiento_by_id(id: str):
+    '''
+    Obtener un avistamiento por su ID.
+    '''
     pass
 
 @app.get("/api/avistamientos/nombre_cientifico/{nombre_cientifico}")
