@@ -1,6 +1,15 @@
+/*constantes de colores*/
+:root {
+    --color-primary: #000000;
+    --color-secondary: #5682B1;
+    --color-gradient-secondary: #1b3a5a;
+    --color-accent: #739EC9;
+    --color-text-primary: #FFE8DB;
+    --color-text-secondary: #9ca3af;
+}
+
 *{
     margin: 0;
-    
 }
 
 .home-container {
@@ -44,7 +53,7 @@
 
 .hero-section {
   text-align: center;
-  color: white;
+  color: var(--color-text-primary);
   margin-bottom: 60px;
   max-width: 800px;
 }
@@ -93,26 +102,26 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--color-secondary);
+  color: var(--color-text-primary);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 20px rgba(86, 130, 177, 0.4);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  background: rgba(115, 158, 201, 0.15);
+  color: var(--color-text-primary);
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--color-accent);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(115, 158, 201, 0.25);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 20px rgba(115, 158, 201, 0.4);
 }
 
 .features {
@@ -125,14 +134,14 @@
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(86, 130, 177, 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--color-accent);
   border-radius: 15px;
   padding: 30px 25px;
   width: 280px;
   text-align: center;
-  color: white;
+  color: var(--color-text-primary);
   pointer-events: auto;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -140,8 +149,8 @@
 
 .feature-card:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  background: rgba(115, 158, 201, 0.2);
+  box-shadow: 0 8px 25px rgba(115, 158, 201, 0.3);
 }
 
 .feature-icon {

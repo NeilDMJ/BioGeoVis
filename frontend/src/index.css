@@ -1,0 +1,30 @@
+/* Paleta de colores global de BioGeoVis */
+:root {
+    --color-primary: #000000;
+    --color-secondary: #5682B1;
+    --color-accent: #739EC9;
+    --color-text-primary: #FFE8DB;
+    --color-text-secondary: #9ca3af;
+}
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
