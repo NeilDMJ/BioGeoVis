@@ -39,7 +39,6 @@ const Navbar = () => {
             </Container>
         </BSNavbar>
     )
->>>>>>> 2a3e4c8ab3369c173ce8097c7a3cd4e409611687
 }
 
 export default Navbar;
