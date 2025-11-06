@@ -18,13 +18,6 @@ def get_all_avistamientos():
     '''
     pass
 
-@app.get("/api/avistamientos/{id}")
-def get_avistamiento_by_id(id: str):
-    '''
-    Obtener un avistamiento por su ID.
-    '''
-    pass
-
 @app.get("/api/avistamientos/nombre_cientifico/{nombre_cientifico}")
 def get_avistamientos_by_nombre_cientifico(nombre_cientifico: str):
     pass
