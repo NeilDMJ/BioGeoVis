@@ -1,7 +1,19 @@
 from fastapi import FastAPI
 from pymongo import MongoClient
+from fastapi.middleware.cors import CORSMiddleware
 import os
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://localhost:5173",
+        "https://bio-geo-vis-3sfh.vercel.app"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 client = MongoClient(mongo_uri)
