@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "csv-parser": "^3.2.0",
-    "mongoose": "^8.19.3",
-    "pandas": "^0.0.3"
-  }
-}
