@@ -31,7 +31,8 @@ dist/
 *.swp
 *.swo
 *~
-
+#csv 
+backend/database/csv/*
 # OS
 .DS_Store
 Thumbs.db
