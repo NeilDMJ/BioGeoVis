@@ -14,6 +14,9 @@ docker compose up -d
 ### **Paso 3: Cargar los datos**
 
 ```bash
+# Copiar el script de carga al contenedor
+docker cp backend/app/load_data.py biogeovis-backend:/app/app/load_data.py
+
 # Copiar datos al contenedor
 docker cp backend/database/avistamientos_mongodb.json biogeovis-backend:/app/database/avistamientos_mongodb.json
 

@@ -25,20 +25,19 @@ services:
     depends_on:
       - mongo
 
-  frontend:
-    build: ./frontend
-    container_name: biogeovis-frontend
-    restart: always
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-    depends_on:
-      - backend
-
+  # frontend:
+  #   build: ./frontend
+  #   container_name: biogeovis-frontend
+  #   restart: always
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   environment:
+  #     - CHOKIDAR_USEPOLLING=true
+  #   depends_on:
+  #     - backend
 
   mongo-express:
     image: mongo-express
