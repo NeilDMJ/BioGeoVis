@@ -1,6 +1,10 @@
 # MongoDB data directory
 mongo_data/
 
+# MongoDB dataset files (datos grandes, no versionar)
+backend/database/*.json
+!backend/database/init/
+
 # Python
 __pycache__/
 *.py[cod]

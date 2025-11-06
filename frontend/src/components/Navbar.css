@@ -1,0 +1,78 @@
+/* Navbar personalizado con la paleta de colores del proyecto */
+
+.custom-navbar {
+    background-color: var(--color-primary) !important;
+    border-bottom: 2px solid var(--color-secondary);
+    padding: 0.5rem 1rem;
+}
+
+.custom-navbar .navbar-brand {
+    color: var(--color-text-primary) !important;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.custom-navbar .navbar-brand:hover {
+    color: var(--color-accent) !important;
+}
+
+.custom-navbar .nav-link {
+    color: var(--color-text-primary) !important;
+    margin: 0 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.custom-navbar .nav-link:hover,
+.custom-navbar .nav-link.active {
+    color: var(--color-accent) !important;
+}
+
+.custom-navbar .dropdown-menu {
+    background-color: var(--color-secondary);
+    border: 1px solid var(--color-accent);
+}
+
+.custom-navbar .dropdown-item {
+    color: var(--color-text-primary);
+}
+
+.custom-navbar .dropdown-item:hover {
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+}
+
+.custom-navbar .form-control {
+    background-color: var(--color-secondary);
+    border: 1px solid var(--color-accent);
+    color: var(--color-text-primary);
+}
+
+.custom-navbar .form-control::placeholder {
+    color: var(--color-text-primary);
+}
+
+.custom-navbar .form-control:focus {
+    background-color: var(--color-secondary);
+    border-color: var(--color-accent);
+    color: var(--color-text-primary);
+    box-shadow: 0 0 0 0.2rem rgba(59, 151, 151, 0.25);
+}
+
+.custom-navbar .btn-outline-success {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.custom-navbar .btn-outline-success:hover {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-primary);
+}
+
+.custom-navbar .navbar-toggler {
+    border-color: var(--color-accent);
+}
+
+.custom-navbar .navbar-toggler-icon {
+    filter: invert(1);
+}
