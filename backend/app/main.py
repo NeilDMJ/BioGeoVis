@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
+from .models import Avistamiento
 import os
+
 app = FastAPI()
 
 app.add_middleware(
@@ -24,11 +26,12 @@ def read_root():
     return {"Hello": "World"}
 
 @app.get("/api/avistamientos")
-def get_all_avistamientos():
-    '''
-    Obtener todos los avistamientos.
-    '''
-    pass
+def get_all_avistamientos(skip: int = 0, limit: int = 100):
+    avistamientos = list(db.avistamientos.find().skip(skip).limit(limit))
+    # Convertir ObjectId a string
+    for avistamiento in avistamientos:
+        avistamiento["_id"] = str(avistamiento["_id"])
+    return avistamientos
 
 @app.get("/api/avistamientos/nombre_cientifico/{nombre_cientifico}")
 def get_avistamientos_by_nombre_cientifico(nombre_cientifico: str):
