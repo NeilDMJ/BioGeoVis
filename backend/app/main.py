@@ -96,25 +96,25 @@ def get_avistamientos_by_ubicacion(lat: float, lng: float):
         avistamiento["_id"] = str(avistamiento["_id"])      
     return Avistamientos
 #########################Faltantes###############################
-@app.get("/api/avistamientos/agrupados/reino/{reino}")
+@app.get("/api/avistamientos/reino/{reino}")
 def get_avistamientos_agrupados_por_reino(reino: str):
     return 
-@app.get("/api/avistamientos/agrupados/filo/{filo}")
+@app.get("/api/avistamientos/filo/{filo}")
 def get_avistamientos_agrupados_por_filo(filo: str):
     return 
-@app.get("/api/avistamientos/agrupados/clase/{clase}")
+@app.get("/api/avistamientos/clase/{clase}")
 def get_avistamientos_agrupados_por_clase(clase: str):
     return
-@app.get("/api/avistamientos/agrupados/orden/{orden}")
+@app.get("/api/avistamientos/orden/{orden}")
 def get_avistamientos_agrupados_por_orden(orden: str):
     return
-@app.get("/api/avistamientos/agrupados/familia/{familia}")
+@app.get("/api/avistamientos/familia/{familia}")
 def get_avistamientos_agrupados_por_familia(familia: str):
     return
-@app.get("/api/avistamientos/agrupados/genero/{genero}")
+@app.get("/api/avistamientos/genero/{genero}")
 def get_avistamientos_agrupados_por_genero(genero: str):
     return
-@app.get("/api/avistamientos/agrupados/especie/{especie}")
+@app.get("/api/avistamientos/especie/{especie}")
 def get_avistamientos_agrupados_por_especie(especie: str):
     return
 ##########################Agrupamientos###############################
