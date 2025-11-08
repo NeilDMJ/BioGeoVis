@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
 from .models import Avistamiento
 import os
+from datetime import datetime
 
 app = FastAPI()
 
@@ -41,20 +42,94 @@ def get_avistamientos_by_nombre_cientifico(nombre_cientifico: str):
     for avistamiento in avistamientos:
         avistamiento["_id"] = str(avistamiento["_id"])
     return avistamientos
-#No funcional aun
+
 @app.get("/api/avistamientos/fecha/{desde}/{hasta}")
-def get_avistamientos_by_fecha(desde: str, hasta: str):
-    ''' Obtener avistamientos por fecha '''
-    Avistamientos = list(db.avistamientos.find({
-        "FechaEvento": {
-            "$gte": desde,
-            "$lte": hasta
-        }
-    }).limit(1000))
-    for avistamiento in Avistamientos:
-        avistamiento["_id"] = str(avistamiento["_id"])
-    return Avistamientos
-#funcional
+def get_avistamientos_by_fecha(desde: str, hasta: str, limit: int = 1000):
+    """
+    Obtener avistamientos por rango de fecha [desde, hasta].
+    - Acepta fechas en formatos comunes (p.ej. YYYY-MM-DD, DD/MM/YYYY e ISO-8601).
+    - Si FechaEvento está guardado como Date en MongoDB, filtra directamente.
+    - Si está como string, convierte de forma segura en el pipeline y filtra.
+    """
+    try:
+        def parse_dt(s: str):
+            s = (s or "").strip()
+            formatos = [
+                "%Y-%m-%d",
+                "%d/%m/%Y",
+                "%Y/%m/%d",
+                "%Y-%m-%dT%H:%M:%S",
+                "%Y-%m-%dT%H:%M:%S.%f",
+            ]
+            for fmt in formatos:
+                try:
+                    return datetime.strptime(s, fmt)
+                except ValueError:
+                    pass
+            # Intento genérico ISO (maneja 'Z')
+            try:
+                iso = s.replace("Z", "+00:00")
+                return datetime.fromisoformat(iso).replace(tzinfo=None)
+            except Exception:
+                return None
+
+        d1, d2 = parse_dt(desde), parse_dt(hasta)
+        if not d1 or not d2:
+            raise HTTPException(status_code=400, detail="Formato de fecha no válido. Use YYYY-MM-DD o DD/MM/YYYY.")
+        if d1 > d2:
+            d1, d2 = d2, d1
+
+        # Index (idempotente) para optimizar cuando es tipo Date
+        try:
+            db.avistamientos.create_index("FechaEvento")
+        except Exception:
+            pass
+
+        # 1) Intento directo (FechaEvento como Date)
+        resultados = list(
+            db.avistamientos.find(
+                {"FechaEvento": {"$gte": d1, "$lte": d2}}
+            ).limit(limit)
+        )
+
+        # 2) Si no hay resultados, intentar cuando FechaEvento es string
+        if not resultados:
+            pipeline = [
+                {"$match": {"FechaEvento": {"$exists": True, "$nin": [None, ""]}}},
+
+                # Normalizar a fecha:
+                {"$addFields": {
+                    "_fecha": {
+                        "$ifNull": [
+                            {"$dateFromString": {
+                                "dateString": "$FechaEvento",
+                                "onError": None,
+                                "onNull": None
+                            }},
+                            {"$dateFromString": {
+                                "dateString": "$FechaEvento",
+                                "format": "%d/%m/%Y",
+                                "onError": None,
+                                "onNull": None
+                            }}
+                        ]
+                    }
+                }},
+                {"$match": {"_fecha": {"$gte": d1, "$lte": d2}}},
+                {"$project": {"_fecha": 0}},
+                {"$limit": limit}
+            ]
+            resultados = list(db.avistamientos.aggregate(pipeline))
+
+        for a in resultados:
+            a["_id"] = str(a["_id"])
+        return resultados
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error filtrando por fecha: {e}")
+
 @app.get("/api/avistamientos/pais/{nombre_pais}")
 def get_avistamientos_by_pais(nombre_pais: str):
     ''' Obtener avistamientos por país '''
@@ -63,60 +138,140 @@ def get_avistamientos_by_pais(nombre_pais: str):
         avistamiento["_id"] = str(avistamiento["_id"])
     return avistamientos
     
-#No funcional aun
+
 @app.get("/api/avistamientos/taxonomia/{reino}/{filo}/{clase}/{orden}/{familia}/{genero}/{especie}")
 def get_avistamientos_by_taxonomia(reino: str, filo: str, clase: str, orden: str, familia: str, genero: str, especie: str):
-    ''' Obtener avistamientos por taxonomía:Reino, Filo, Clase, Orden, Familia, Genero, Especie '''
-    Avistamientos = list(db.avistamientos.find(
-        {"Taxonomia.Reino": reino,
-        "Taxonomia.Filo": filo,
-        "Taxonomia.Clase": clase,
-        "Taxonomia.Orden": orden,
-        "Taxonomia.Familia": familia,
-        "Taxonomia.Genero": genero,
-        "Taxonomia.Especie": especie
+    """
+    Obtener avistamientos por taxonomía: Reino, Filo, Clase, Orden, Familia, Género, Especie.
+    Usa '-' o '*' para ignorar un nivel (comodín); comparación case-insensitive exacta.
+    """
+    try:
+        raw_params = {
+            "Taxonomia.Reino": reino,
+            "Taxonomia.Filo": filo,
+            "Taxonomia.Clase": clase,
+            "Taxonomia.Orden": orden,
+            "Taxonomia.Familia": familia,
+            "Taxonomia.Genero": genero,
+            "Taxonomia.Especie": especie
         }
-    ))
-    for avistamiento in Avistamientos:
-        avistamiento["_id"] = str(avistamiento["_id"])
-    return Avistamientos
-#No funcional aun
+        query = {}
+        for field, value in raw_params.items():
+            if value not in ("-", "*"):
+                # Búsqueda exacta pero ignorando mayúsculas/minúsculas
+                query[field] = {"$regex": f"^{value}$", "$options": "i"}
+        resultados = list(db.avistamientos.find(query).limit(1000))
+        for r in resultados:
+            r["_id"] = str(r["_id"])
+        return resultados
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error filtrando por taxonomía: {e}")
+
 @app.get("/api/avistamientos/ubicacion/{lat}/{lng}")
-def get_avistamientos_by_ubicacion(lat: float, lng: float):
-    ''' Obtener avistamientos por ubicación (latitud y longitud) '''
-    Avistamientos = list(db.avistamientos.find({
-        "Ubicacion.Latitud": {
-            "$gte": lat 
-        },
-        "Ubicacion.Longitud": {
-            "$gte": lng
+def get_avistamientos_by_ubicacion(lat: float, lng: float, tolerancia: float = 0.0001, limit: int = 1000):
+    """
+    Obtener avistamientos por ubicación (latitud y longitud) usando una tolerancia.
+    Si los valores en la base están como string se intenta también con ese formato.
+    """
+    try:
+        # Búsqueda primaria asumiendo que los campos son numéricos
+        query_num = {
+            "Ubicacion.Latitud": {"$gte": lat - tolerancia, "$lte": lat + tolerancia},
+            "Ubicacion.Longitud": {"$gte": lng - tolerancia, "$lte": lng + tolerancia}
         }
-    }).limit(1000))
-    for avistamiento in Avistamientos:
-        avistamiento["_id"] = str(avistamiento["_id"])      
-    return Avistamientos
+        resultados = list(db.avistamientos.find(query_num).limit(limit))
+
+        # Si no hubo resultados, intentar con valores como string (por si están guardados así)
+        if not resultados:
+            query_str = {
+                "Ubicacion.Latitud": {"$in": [str(lat), f"{lat}"]},
+                "Ubicacion.Longitud": {"$in": [str(lng), f"{lng}"]}
+            }
+            resultados = list(db.avistamientos.find(query_str).limit(limit))
+
+        for avistamiento in resultados:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return resultados
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por ubicación: {e}")
 #########################Faltantes###############################
 @app.get("/api/avistamientos/reino/{reino}")
-def get_avistamientos_agrupados_por_reino(reino: str):
-    return 
+def get_avistamientos_por_reino(reino: str):
+    ''' Obtener avistamientos por reino '''
+    try:
+        avistamientos = list(db.avistamientos.find({"Taxonomia.Reino": reino}).limit(2000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por reino: {e}")
+
 @app.get("/api/avistamientos/filo/{filo}")
 def get_avistamientos_agrupados_por_filo(filo: str):
-    return 
+    ''' Obtener avistamientos por filo '''
+    try:
+        avistamientos = list(db.avistamientos.find({"Taxonomia.Filo": filo}).limit(2000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por filo: {e}")
+
 @app.get("/api/avistamientos/clase/{clase}")
 def get_avistamientos_agrupados_por_clase(clase: str):
-    return
+    ''' Obtener avistamientos por clase '''
+    try:
+        avistamientos = list(db.avistamientos.find({"Taxonomia.Clase": clase}).limit(2000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por clase: {e}")
+
 @app.get("/api/avistamientos/orden/{orden}")
 def get_avistamientos_agrupados_por_orden(orden: str):
-    return
+    ''' Obtener avistamientos por orden '''
+    try:
+        avistamientos = list(db.avistamientos.find({"Taxonomia.Orden": orden}).limit(2000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por orden: {e}")
+
 @app.get("/api/avistamientos/familia/{familia}")
 def get_avistamientos_agrupados_por_familia(familia: str):
-    return
+    ''' Obtener avistamientos por familia '''
+    try:
+        avistamientos = list(db.avistamientos.find({"Taxonomia.Familia": familia}).limit(2000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por familia: {e}")
+
 @app.get("/api/avistamientos/genero/{genero}")
 def get_avistamientos_agrupados_por_genero(genero: str):
-    return
+    ''' Obtener avistamientos por género '''
+    try:
+        avistamientos = list(db.avistamientos.find({"Taxonomia.Genero": genero}).limit(1000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por género: {e}")
+
 @app.get("/api/avistamientos/especie/{especie}")
 def get_avistamientos_agrupados_por_especie(especie: str):
-    return
+    ''' Obtener avistamientos por especie '''
+    try:
+        avistamientos = list(db.avistamientos.find({"Taxonomia.Especie": especie}).limit(1000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por especie: {e}")
+
 ##########################Agrupamientos###############################
 @app.get("/api/avistamientos/agrupados/pais")
 def get_avistamientos_agrupados_por_pais():
