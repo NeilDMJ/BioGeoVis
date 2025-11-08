@@ -15,7 +15,9 @@
 .filter-panel {
   width: 330px;
   max-height: 100vh;
-  overflow-y: auto;
+  /* permitir que el panel ocupe toda la altura y gestione el scroll interno */
+  height: 100vh;
+  overflow: hidden; /* dejar overflow al contenedor interno */
   padding: 12px;
   background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
   color: var(--text);
@@ -38,7 +40,9 @@
   border-radius: 4px;
 }
 
+/* Header no debe crecer */
 .panel-header {
+  flex: 0 0 auto;
   background: rgba(255,255,255,0.15);
   color: #eaf6ff;
   border: 1px solid rgba(255,255,255,0.25);
@@ -53,9 +57,19 @@
 
 .panel-header.clickable { cursor: pointer; }
 
-.panel-body { display: flex; flex-direction: column; gap: 14px; }
+
+.panel-body {
+  flex: 1 1 auto;
+  min-height: 0; 
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 12px; 
+}
 
 .card {
+  flex: 0 0 auto;
   background: linear-gradient(180deg, var(--card), var(--card-2));
   border-radius: 16px;
   padding: 14px;
@@ -65,7 +79,9 @@
 
 .card.advanced {
   animation: fadeSlide .25s ease;
-  overflow: hidden; /* evita que algo sobresalga */
+  margin-bottom: 6px;
+  overflow: visible;
+
 }
 
 @keyframes fadeSlide {
@@ -179,6 +195,10 @@
   gap: 10px;
 }
 
+.grid-2 .field {
+  min-width: 0; /* importante para evitar overflow dentro del grid */
+}
+
 .details summary {
   cursor: pointer;
   color: var(--accent-strong);
@@ -197,14 +217,13 @@
 }
 
 .dates .field {
-  min-width: 0; /* permite que se encojan dentro del grid */
+  min-width: 0; 
 }
 
 .dates .field input {
   width: 100%;
 }
 
-/* Posicionamiento fijo en Explorer (lado derecho) */
 .explorer-filters-wrapper {
   position: fixed;
   top: 0;

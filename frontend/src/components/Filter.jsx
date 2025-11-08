@@ -12,6 +12,7 @@ export default function Filter({
   const [coords, setCoords] = useState({ lat: "", lon: "" });
   const [open, setOpen] = useState(false); // despliegue filtros avanzados
   const [adv, setAdv] = useState({
+    nombreCientifico: "",
     especie: "",
     reino: "",
     familia: "",
@@ -62,6 +63,65 @@ export default function Filter({
         <span className="icon">{open ? "▾" : "▸"}</span>
       </header>
 
+      {/* Filtros avanzados ahora aparecen inmediatamente después del header */}
+      {open && (
+        <section className="card advanced">
+          <div className="section-header">
+            <span>Filtros avanzados</span>
+          </div>
+          <form onSubmit={applyAdv}>
+            <div className="grid-2">
+              {[
+                ["nombreCientifico", "Nombre científico", "Ej. Panthera onca"],
+                ["especie", "Especie", "Ej. Panthera onca"],
+                ["reino", "Reino", "Ej. Animalia"],
+                ["familia", "Familia", "Ej. Felidae"],
+                ["clase", "Clase", "Ej. Mammalia"],
+                ["orden", "Orden", "Ej. Carnivora"],
+                ["genero", "Género", "Ej. Panthera"],
+                ["pais", "País", "Ej. México"],
+              ].map(([k, label, ph]) => (
+                <div className="field" key={k}>
+                  <label>{label}</label>
+                  <input
+                    type="text"
+                    placeholder={ph}
+                    value={adv[k]}
+                    onChange={updateAdv(k)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <details className="details">
+              <summary>Rango de fechas</summary>
+              <div className="dates">
+                <div className="field">
+                  <label>Desde</label>
+                  <input
+                    type="date"
+                    value={adv.fechaInicio}
+                    onChange={updateAdv("fechaInicio")}
+                  />
+                </div>
+                <div className="field">
+                  <label>Hasta</label>
+                  <input
+                    type="date"
+                    value={adv.fechaFin}
+                    onChange={updateAdv("fechaFin")}
+                  />
+                </div>
+              </div>
+            </details>
+
+            <button className="primary-btn mt" type="submit">
+              Aplicar filtros
+            </button>
+          </form>
+        </section>
+      )}
+
       {/* Contenido básico siempre visible */}
       <div className="panel-body">
         <section className="card">
@@ -103,7 +163,7 @@ export default function Filter({
                 title="Buscar"
                 onClick={() => onSearch?.(search)}
               >
-                🔍
+                
               </button>
             </div>
           </div>
@@ -146,64 +206,6 @@ export default function Filter({
             </button>
           </form>
         </section>
-
-        {/* Filtros avanzados colapsables */}
-        {open && (
-          <section className="card advanced">
-            <div className="section-header">
-              <span>Filtros avanzados</span>
-            </div>
-            <form onSubmit={applyAdv}>
-              <div className="grid-2">
-                {[
-                  ["especie", "Especie", "Ej. Panthera onca"],
-                  ["reino", "Reino", "Ej. Animalia"],
-                  ["familia", "Familia", "Ej. Felidae"],
-                  ["clase", "Clase", "Ej. Mammalia"],
-                  ["orden", "Orden", "Ej. Carnivora"],
-                  ["genero", "Género", "Ej. Panthera"],
-                  ["pais", "País", "Ej. México"],
-                ].map(([k, label, ph]) => (
-                  <div className="field" key={k}>
-                    <label>{label}</label>
-                    <input
-                      type="text"
-                      placeholder={ph}
-                      value={adv[k]}
-                      onChange={updateAdv(k)}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <details className="details">
-                <summary>Rango de fechas</summary>
-                <div className="dates">
-                  <div className="field">
-                    <label>Desde</label>
-                    <input
-                      type="date"
-                      value={adv.fechaInicio}
-                      onChange={updateAdv("fechaInicio")}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>Hasta</label>
-                    <input
-                      type="date"
-                      value={adv.fechaFin}
-                      onChange={updateAdv("fechaFin")}
-                    />
-                  </div>
-                </div>
-              </details>
-
-              <button className="primary-btn mt" type="submit">
-                Aplicar filtros
-              </button>
-            </form>
-          </section>
-        )}
       </div>
     </aside>
   );
