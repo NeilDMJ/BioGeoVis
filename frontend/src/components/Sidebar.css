@@ -1,0 +1,101 @@
+.sidebar {
+    background-color: var(--color-primary);
+    border-right: 1px solid var(--color-secondary);
+    padding: 1.5rem;
+    width: 280px;
+    height: 100%;
+    overflow-y: auto;
+    color: var(--color-text-primary);
+}
+
+.sidebar h3 {
+    color: var(--color-accent);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-secondary);
+    padding-bottom: 0.5rem;
+}
+
+.sidebar hr {
+    border-color: var(--color-secondary);
+    margin: 1.5rem 0;
+}
+
+.filter-section {
+    margin-bottom: 1.5rem;
+}
+
+.filter-section label {
+    display: block;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.filter-section input,
+.filter-section select {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background-color: rgba(115, 158, 201, 0.1);
+    border: 1px solid var(--color-secondary);
+    border-radius: 4px;
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+}
+
+.filter-section input:focus,
+.filter-section select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    background-color: rgba(115, 158, 201, 0.2);
+}
+
+.filter-section input::placeholder {
+    color: var(--color-text-secondary);
+}
+
+.sidebar-actions {
+    margin-top: 1rem;
+}
+
+.stats-mini {
+    margin-top: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(115, 158, 201, 0.2);
+}
+
+.stat-label {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: var(--color-accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Scrollbar personalizado */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--color-secondary);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+}

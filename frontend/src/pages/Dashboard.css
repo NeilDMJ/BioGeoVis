@@ -13,17 +13,29 @@
 }
 
 body{
-    background-color: var(--color-primary) ;
+    background-color: var(--color-primary);
+}
+
+.dashboard {
+    min-height: 100vh;
+    background-color: var(--color-primary);
 }
 
 .Navbar{
     border-bottom: 1px solid var(--color-secondary);
 }
 
+.dashboard-container {
+    display: flex;
+    height: calc(100vh - 56px); /* Altura total menos navbar */
+}
+
 .sidebar{
     border-right: 1px solid var(--color-secondary);
     width: 14rem;
-    height: calc(100vh - 52px);
+    height: 100%;
+    background-color: var(--color-primary);
+    
     ul{
         list-style: none;
         padding: 1rem 2rem;
@@ -31,7 +43,163 @@ body{
             margin-bottom: 1rem;
             a{
                 text-decoration: none;
+                color: var(--color-text-primary);
+                transition: color 0.3s ease;
+            }
+            a:hover {
+                color: var(--color-accent);
             }
         }
+    }
+}
+
+.dashboard-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Tarjetas KPI */
+.dashboard-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.kpi-card {
+    background: linear-gradient(135deg, rgba(115, 158, 201, 0.15) 0%, rgba(115, 158, 201, 0.05) 100%);
+    border: 1px solid var(--color-secondary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(115, 158, 201, 0.3);
+}
+
+.kpi-icon {
+    font-size: 2.5rem;
+}
+
+.kpi-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.kpi-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--color-accent);
+    line-height: 1.2;
+}
+
+.kpi-label {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* Contenedor del Mapa */
+.dashboard-map-container {
+    background-color: rgba(115, 158, 201, 0.1);
+    border: 1px solid var(--color-secondary);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.dashboard-map-container h3 {
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.map-placeholder {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-accent);
+    border-radius: 4px;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+}
+
+/* Contenedores de Gráficas */
+.dashboard-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.chart-container {
+    background-color: rgba(115, 158, 201, 0.1);
+    border: 1px solid var(--color-secondary);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.chart-container h3 {
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.chart-placeholder {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-accent);
+    border-radius: 4px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+}
+
+/* Tabla de Avistamientos */
+.dashboard-table-container {
+    background-color: rgba(115, 158, 201, 0.1);
+    border: 1px solid var(--color-secondary);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.dashboard-table-container h3 {
+    color: var(--color-text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.table-placeholder {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-accent);
+    border-radius: 4px;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+    }
+    
+    .dashboard-charts {
+        grid-template-columns: 1fr;
     }
 }
