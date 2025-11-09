@@ -1,15 +1,38 @@
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from .models import Avistamiento
 import os
 from datetime import datetime
 
 app = FastAPI()
 
+# Índices para acelerar las consultas. Se crean en startup.
+@app.on_event("startup")
+def _ensure_indexes():
+    try:
+        db.avistamientos.create_index("FechaEvento")
+        db.avistamientos.create_index("NombreCientifico")
+        db.avistamientos.create_index("Ubicacion.Pais")
+        db.avistamientos.create_index("Ubicacion.Latitud")
+        db.avistamientos.create_index("Ubicacion.Longitud")
+        db.avistamientos.create_index("Taxonomia.Reino")
+        db.avistamientos.create_index("Taxonomia.Filo")
+        db.avistamientos.create_index("Taxonomia.Clase")
+        db.avistamientos.create_index("Taxonomia.Orden")
+        db.avistamientos.create_index("Taxonomia.Familia")
+        db.avistamientos.create_index("Taxonomia.Genero")
+        db.avistamientos.create_index("Taxonomia.Especie")
+    except Exception:
+        # No bloquear el arranque si falla
+        pass
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
         "https://localhost:5173",
         "https://bio-geo-vis-3sfh.vercel.app"
     ],
@@ -17,6 +40,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+# Comprimir respuestas grandes para acelerar transferencia
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 client = MongoClient(mongo_uri)
@@ -66,7 +92,6 @@ def get_avistamientos_by_fecha(desde: str, hasta: str, limit: int = 1000):
                     return datetime.strptime(s, fmt)
                 except ValueError:
                     pass
-            # Intento genérico ISO (maneja 'Z')
             try:
                 iso = s.replace("Z", "+00:00")
                 return datetime.fromisoformat(iso).replace(tzinfo=None)
@@ -79,20 +104,18 @@ def get_avistamientos_by_fecha(desde: str, hasta: str, limit: int = 1000):
         if d1 > d2:
             d1, d2 = d2, d1
 
-        # Index (idempotente) para optimizar cuando es tipo Date
         try:
             db.avistamientos.create_index("FechaEvento")
         except Exception:
             pass
 
-        # 1) Intento directo (FechaEvento como Date)
+        # 1) Intento directo 
         resultados = list(
             db.avistamientos.find(
                 {"FechaEvento": {"$gte": d1, "$lte": d2}}
             ).limit(limit)
         )
 
-        # 2) Si no hay resultados, intentar cuando FechaEvento es string
         if not resultados:
             pipeline = [
                 {"$match": {"FechaEvento": {"$exists": True, "$nin": [None, ""]}}},
@@ -156,11 +179,30 @@ def get_avistamientos_by_taxonomia(reino: str, filo: str, clase: str, orden: str
             "Taxonomia.Especie": especie
         }
         query = {}
+        used_fields = []
         for field, value in raw_params.items():
-            if value not in ("-", "*"):
-                # Búsqueda exacta pero ignorando mayúsculas/minúsculas
-                query[field] = {"$regex": f"^{value}$", "$options": "i"}
+            if value not in ("-", "*") and value.strip():
+                used_fields.append((field, value.strip()))
+                query[field] = {"$regex": f"^{value.strip()}$", "$options": "i"}
+
         resultados = list(db.avistamientos.find(query).limit(1000))
+
+        # Fallback: si no hubo resultados y se usaron campos, probar pipeline con trim+lower
+        if not resultados and used_fields:
+            and_expr = []
+            for field, value in used_fields:
+                and_expr.append({
+                    "$eq": [
+                        {"$toLower": {"$trim": {"input": f"${field}"}}},
+                        value.lower()
+                    ]
+                })
+            pipeline = [
+                {"$match": {"$expr": {"$and": and_expr}}},
+                {"$limit": 1000}
+            ]
+            resultados = list(db.avistamientos.aggregate(pipeline))
+
         for r in resultados:
             r["_id"] = str(r["_id"])
         return resultados
@@ -175,17 +217,18 @@ def get_avistamientos_by_ubicacion(lat: float, lng: float, tolerancia: float = 0
     """
     try:
         # Búsqueda primaria asumiendo que los campos son numéricos
+        # Según models.py, la estructura es Ubicacion.Geolocalizacion.Latitud/Longitud
         query_num = {
-            "Ubicacion.Latitud": {"$gte": lat - tolerancia, "$lte": lat + tolerancia},
-            "Ubicacion.Longitud": {"$gte": lng - tolerancia, "$lte": lng + tolerancia}
+            "Ubicacion.Geolocalizacion.Latitud": {"$gte": lat - tolerancia, "$lte": lat + tolerancia},
+            "Ubicacion.Geolocalizacion.Longitud": {"$gte": lng - tolerancia, "$lte": lng + tolerancia}
         }
         resultados = list(db.avistamientos.find(query_num).limit(limit))
 
         # Si no hubo resultados, intentar con valores como string (por si están guardados así)
         if not resultados:
             query_str = {
-                "Ubicacion.Latitud": {"$in": [str(lat), f"{lat}"]},
-                "Ubicacion.Longitud": {"$in": [str(lng), f"{lng}"]}
+                "Ubicacion.Geolocalizacion.Latitud": {"$in": [str(lat), f"{lat}"]},
+                "Ubicacion.Geolocalizacion.Longitud": {"$in": [str(lng), f"{lng}"]}
             }
             resultados = list(db.avistamientos.find(query_str).limit(limit))
 
