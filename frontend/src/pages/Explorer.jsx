@@ -3,13 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import Globe from 'globe.gl';
 import Filter from '../components/Filter';
+import { fetchAvistamientosAdvanced } from '../services/api';
 
 function Explorer() {
   const navigate = useNavigate();
   const globeEl = useRef();
   const globeRef = useRef(null);
   const [countries, setCountries] = useState(null);
+  // Marcadores ya no se muestran en el globo; se pasan a MapView.
   const [markers, setMarkers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // filtros aplicados (avanzados)
   const [advancedFilters, setAdvancedFilters] = useState(null);
@@ -52,25 +56,30 @@ function Explorer() {
       .polygonLabel(({ properties }) => `<b>${properties.name}</b>`);
   }, [countries]);
 
-  useEffect(() => {
-    const globe = globeRef.current;
-    if (!globe) return;
-    globe
-      .pointsData(markers)
-      .pointLat(d => d.lat)
-      .pointLng(d => d.lng)
-      .pointAltitude(0.02)
-      .pointRadius(0.2)
-      .pointColor(d => d.color || '#ff0000')
-      .pointLabel(d => d.label)
-      .pointsMerge(true);
-  }, [markers]);
-
-  // Simulación: cuando se aplican filtros avanzados podrías hacer fetch
+  // Cuando se aplican filtros avanzados, consultar API y actualizar marcadores
   useEffect(() => {
     if (!advancedFilters) return;
-    console.log("Aplicar filtros avanzados:", advancedFilters);
-    // TODO: fetch con advancedFilters y actualizar markers
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { markers } = await fetchAvistamientosAdvanced(advancedFilters);
+        if (!cancelled) {
+          setMarkers(markers);
+          // Persistimos en sessionStorage para evitar pérdida de state en navegación/recargas
+          try { sessionStorage.setItem('biogeovis:mapMarkers', JSON.stringify(markers)); } catch {}
+          // Navegar automáticamente al mapa con los marcadores (también pasamos un flag liviano)
+          navigate('/map', { state: { markers } });
+        }
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) setError(e.message || 'Error al obtener avistamientos');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [advancedFilters]);
 
   return (
@@ -107,6 +116,12 @@ function Explorer() {
         <div style={{ fontSize: 12, marginBottom: 6, color: '#FFE8DB' }}>
           Haz click en cualquier parte del globo para ver el mapa detallado.
         </div>
+        {loading && (
+          <div style={{ fontSize: 12, color: '#fff' }}>Cargando avistamientos…</div>
+        )}
+        {error && (
+          <div style={{ fontSize: 12, color: '#ffdddd' }}>Error: {error}</div>
+        )}
         <div style={{
           fontSize: 11,
           color: '#9ca3af',
@@ -138,9 +153,9 @@ function Explorer() {
       {/* Panel de filtros lado derecho */}
       <div className="explorer-filters-wrapper">
         <Filter
-          onChangeView={(v) => console.log("vista:", v)}
-          onSearch={(q) => console.log("buscar:", q)}
-          onApplyCoordinates={(c) => console.log("coords:", c)}
+          onChangeView={(v) => console.log('vista:', v)}
+          onSearch={(q) => console.log('buscar:', q)}
+          onApplyCoordinates={(c) => console.log('coords:', c)}
           onApplyAdvancedFilters={(f) => setAdvancedFilters(f)}
         />
       </div>
