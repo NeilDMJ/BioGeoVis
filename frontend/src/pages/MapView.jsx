@@ -1,16 +1,65 @@
-import { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+// Clustering 
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 
-// Solución para los iconos de marcadores
-const customIcon = L.divIcon({
-  html: '<div style="font-size: 24px;">🐸</div>',
-  className: 'my-div-icon',
-  iconSize: [30, 30]
+// Icono fallback para un único punto 
+const singlePointIcon = L.divIcon({
+  html: '<div style="font-size: 20px; line-height:20px;">📍</div>',
+  className: 'single-point-icon',
+  iconSize: [24, 24]
 });
+
+// Cache de íconos tipo pin por color para evitar recrearlos 
+const pinIconCache = new Map();
+function darkenHex(hex, amt = 0.15) {
+  try {
+    const c = hex.replace('#', '');
+    const num = parseInt(c, 16);
+    const r = Math.max(0, Math.min(255, Math.floor(((num >> 16) & 0xff) * (1 - amt))));
+    const g = Math.max(0, Math.min(255, Math.floor(((num >> 8) & 0xff) * (1 - amt))));
+    const b = Math.max(0, Math.min(255, Math.floor((num & 0xff) * (1 - amt))));
+    return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+  } catch { return hex; }
+}
+function getPinIcon(color = '#F44336') {
+  const key = color.toLowerCase();
+  if (pinIconCache.has(key)) return pinIconCache.get(key);
+  const shade = darkenHex(color, 0.25);
+  const svg = encodeURIComponent(`
+    <svg xmlns='http://www.w3.org/2000/svg' width='22' height='32' viewBox='0 0 26 38'>
+      <defs>
+        <linearGradient id='grad' x1='0%' y1='0%' x2='0%' y2='100%'>
+          <stop offset='0%' stop-color='${color}'/>
+          <stop offset='100%' stop-color='${shade}'/>
+        </linearGradient>
+        <filter id='dropShadow' x='-50%' y='-50%' width='200%' height='200%'>
+          <feGaussianBlur in='SourceAlpha' stdDeviation='1' result='blur'/>
+          <feOffset in='blur' dx='0' dy='1' result='offset'/>
+          <feMerge>
+            <feMergeNode in='offset'/>
+            <feMergeNode in='SourceGraphic'/>
+          </feMerge>
+        </filter>
+      </defs>
+      <path filter='url(#dropShadow)' fill='url(#grad)' d='M13 0C6 0 0.5 5.4 0.5 12.1c0 8.7 9.8 15.7 11.9 24 0.2 0.8 1.4 0.8 1.7 0 2.1-8.3 11.9-15.3 11.9-24C26 5.4 20 0 13 0z'/>
+      <circle cx='13' cy='12' r='4.2' fill='#fff'/>
+    </svg>`);
+  const icon = L.icon({
+    iconUrl: `data:image/svg+xml;charset=UTF-8,${svg}`,
+    iconSize: [22, 32],
+    iconAnchor: [11, 32],
+    popupAnchor: [0, -26]
+  });
+  pinIconCache.set(key, icon);
+  return icon;
+}
 
 // Proveedores de tiles 
 const TILE_PROVIDERS = {
@@ -47,13 +96,89 @@ function MapView() {
   const [providerKey, setProviderKey] = useState('carto');
   const provider = TILE_PROVIDERS[providerKey];
   
-  // Obtener las coordenadas de la ubicación (si vienen del globo)
-  const clickedLat = location.state?.lat || 40.7128;
-  const clickedLng = location.state?.lng || -74.0060;
-  const position = [clickedLat, clickedLng];
+  // Marcadores provenientes del Explorer  o recuperados de sessionStorage en caso de recarga
+  const initialMarkers = location.state?.markers || (() => {
+    try {
+      const cached = sessionStorage.getItem('biogeovis:mapMarkers');
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  })();
+  const [markers, setMarkers] = useState(initialMarkers);
+  const hasMarkers = markers.length > 0;
 
-  // Limites del mundo: evita desplazarse fuera de la proyección del mapa
-  const maxBounds = [[-85, -180], [85, 180]]; // [southWest, northEast]
+  // Referencia al grupo de clusters
+  const clusterGroupRef = useRef(null);
+
+  // Obtener las coordenadas de la ubicación clickeada en el globo
+  const clickedLat = location.state?.lat ?? 40.7128;
+  const clickedLng = location.state?.lng ?? -74.0060;
+
+  const position = useMemo(() => {
+    if (hasMarkers) {
+      const sum = markers.reduce((acc, m) => ({ lat: acc.lat + m.lat, lng: acc.lng + m.lng }), { lat: 0, lng: 0 });
+      const cnt = markers.length;
+      return [sum.lat / cnt, sum.lng / cnt];
+    }
+    return [clickedLat, clickedLng];
+  }, [hasMarkers, markers, clickedLat, clickedLng]);
+
+  const maxBounds = [[-85, -180], [85, 180]]; 
+  const mapRef = useRef(null);
+
+  // Ajustar vista automáticamente según marcadores
+  useEffect(() => {
+    if (!mapRef.current || !hasMarkers || !markers.length) return;
+    if (markers.length === 1) {
+      const m = markers[0];
+      mapRef.current.setView([m.lat, m.lng], 6, { animate: true });
+      return;
+    }
+    const lats = markers.map(m => m.lat);
+    const lngs = markers.map(m => m.lng);
+    const bounds = [
+      [Math.min(...lats), Math.min(...lngs)],
+      [Math.max(...lats), Math.max(...lngs)]
+    ];
+    mapRef.current.fitBounds(bounds, { padding: [40, 40], animate: true });
+  }, [hasMarkers, markers]);
+
+  // Componente interno para clusters usando la API de react-leaflet
+  function MarkerClusters({ points }) {
+    const map = useMap();
+    useEffect(() => {
+      if (!map || !points.length) return;
+      // Si plugin no cargó, fallback a no clusterizar 
+      if (!L.markerClusterGroup) {
+        if (import.meta.env.DEV) console.warn('[MapView] markerClusterGroup no disponible, fallback a markers simples');
+        return;
+      }
+      const clusterGroup = L.markerClusterGroup({
+        chunkedLoading: true,
+        maxClusterRadius: 52,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        iconCreateFunction: (cluster) => {
+          const count = cluster.getChildCount();
+          const size = count < 10 ? 34 : count < 50 ? 40 : count < 200 ? 48 : 56;
+          const color = '#ff6b6b';
+          const shade = darkenHex(color, 0.35);
+          const html = `\n            <div style="\n              background: radial-gradient(circle at 30% 30%, #fff 0%, ${color} 70%);\n              width:${size}px;\n              height:${size}px;\n              border-radius:50%;\n              display:flex;\n              align-items:center;\n              justify-content:center;\n              color:#fff;\n              font-weight:600;\n              font-size:${count < 10 ? 13 : count < 50 ? 14 : 15}px;\n              box-shadow:0 2px 6px rgba(0,0,0,0.35);\n              border:2px solid ${shade};\n            ">${count}</div>`;
+          return L.divIcon({ html, className: 'custom-cluster-icon', iconSize: [size, size] });
+        }
+      });
+      points.forEach(m => {
+        const marker = L.marker([m.lat, m.lng], { icon: getPinIcon(m.color || '#ff0000') });
+        marker.bindPopup(`<div style="font-size:13px"><strong>${m.label || 'Avistamiento'}</strong><br/>Lat: ${m.lat.toFixed(4)}<br/>Lng: ${m.lng.toFixed(4)}</div>`);
+        clusterGroup.addLayer(marker);
+      });
+      map.addLayer(clusterGroup);
+      if (import.meta.env.DEV) console.debug('[MapView] Clusters montados. Total puntos:', points.length);
+      return () => {
+        map.removeLayer(clusterGroup);
+      };
+    }, [map, points]);
+    return null;
+  }
 
   return (
     <div style={{ position: 'relative' }}>
@@ -116,27 +241,66 @@ function MapView() {
 
       <MapContainer
         center={position}
-        zoom={6}
-        minZoom={1.5}      // no permitir zoom menor a 1.5
-        zoomSnap={0}      // permitir zoom fraccional (no solo enteros)
+        zoom={hasMarkers ? 3 : 6}
+        minZoom={1.5}      
+        zoomSnap={0}      // permitir zoom fraccional 
         style={{ height: "100vh", width: "100vw" }}
         maxBounds={maxBounds}
         maxBoundsViscosity={1.0}
+        whenCreated={(map) => { mapRef.current = map; }}
       >
         <TileLayer
           attribution={provider.attribution}
           url={provider.url}
         />
-        <Marker position={position} icon={customIcon}>
-          <Popup>
-            <div style={{ fontSize: 13 }}>
-              <strong>Punto seleccionado</strong><br />
-              Lat: {clickedLat.toFixed(4)}<br />
-              Lng: {clickedLng.toFixed(4)}
-            </div>
-          </Popup>
-        </Marker>
+        {/* Fallback: si no hay markers mostrar punto único */}
+        {hasMarkers ? null : (
+          <Marker position={[clickedLat, clickedLng]} icon={singlePointIcon}>
+            <Popup>
+              <div style={{ fontSize: 13 }}>
+                <strong>Punto seleccionado</strong><br />
+                Lat: {clickedLat.toFixed(4)}<br />
+                Lng: {clickedLng.toFixed(4)}
+              </div>
+            </Popup>
+          </Marker>
+        )}
+        {/* Render: cluster si hay plugin y más de 2 puntos, sino markers simples */}
+        {hasMarkers && (
+          L.markerClusterGroup ? (
+            <MarkerClusters points={markers} />
+          ) : (
+            markers.map((m,i) => (
+              <Marker key={i} position={[m.lat, m.lng]} icon={getPinIcon(m.color || '#ff0000')}>
+                <Popup>
+                  <div style={{ fontSize: 13 }}>
+                    <strong>{m.label || 'Avistamiento'}</strong><br />
+                    Lat: {m.lat.toFixed(4)}<br />
+                    Lng: {m.lng.toFixed(4)}
+                  </div>
+                </Popup>
+              </Marker>
+            ))
+          )
+        )}
       </MapContainer>
+      {/* Overlay con conteo de marcadores */}
+      {hasMarkers && (
+        <div style={{
+          position: 'absolute',
+          bottom: 10,
+          right: 10,
+          zIndex: 1000,
+          background: '#1f2937',
+          color: '#f9fafb',
+          padding: '6px 10px',
+          borderRadius: 6,
+          fontSize: 12,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)'
+        }}>
+          Marcadores: {markers.length}
+        </div>
+      )}
     </div>
   );
 }
