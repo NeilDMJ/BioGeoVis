@@ -1,5 +1,5 @@
 // Api centralizado para los endpoints de avistamientos del backend
-const BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'https://174lp6p4-8000.usw3.devtunnels.ms/' ||'http://localhost:8000';
+const BASE_URL = 'http://localhost:8000';
 
 async function apiGet(path) {
   const url = `${BASE_URL}${path}`;
@@ -19,6 +19,50 @@ function buildTaxonomiaPath({ reino, filo, clase, orden, familia, genero, especi
   const seg = [reino, filo, clase, orden, familia, genero, especie].map(sanitize);
   return `/api/avistamientos/taxonomia/${seg.join('/')}`;
 }
+
+const trimOrNull = (value) => {
+  if (value == null) return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length ? trimmed : null;
+  }
+  return String(value);
+};
+
+const firstTruthyString = (...values) => {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return null;
+};
+
+const extractImageUrl = (doc) => {
+  const candidates = [
+    doc?.ImagenUrl,
+    doc?.Imagen?.Url,
+    doc?.Imagen?.URL,
+    doc?.Imagen,
+    doc?.Media?.ImagenPrincipal,
+    doc?.Media?.Imagenes?.[0],
+    doc?.Media?.Imagenes?.[0]?.Url,
+    doc?.Media?.Imagenes?.[0]?.URL,
+    doc?.Media?.Imagenes?.[0]?.url,
+    doc?.Foto,
+    doc?.foto,
+    doc?.FotoUrl,
+    doc?.imageUrl,
+    doc?.Imagenes?.[0]
+  ];
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+    if (typeof candidate === 'object') {
+      const objectUrl = firstTruthyString(candidate.Url, candidate.URL, candidate.url, candidate.src);
+      if (objectUrl) return objectUrl;
+    }
+  }
+  return null;
+};
 
 // Función que transforma un documento de avistamiento del backend en un objeto marcador para el globo.
 function toMarker(doc) {
@@ -57,7 +101,23 @@ function toMarker(doc) {
         monera: '#ffa94d'
     };
     const color = colorMap[reino] || '#ff0000';
-    return { lat: latNum, lng: lngNum, label, color };
+    const taxonomy = {
+      kingdom: trimOrNull(doc?.Taxonomia?.Reino),
+      phylum: trimOrNull(doc?.Taxonomia?.Filo),
+      class: trimOrNull(doc?.Taxonomia?.Clase),
+      order: trimOrNull(doc?.Taxonomia?.Orden),
+      family: trimOrNull(doc?.Taxonomia?.Familia),
+      genus: trimOrNull(doc?.Taxonomia?.Genero),
+      species: trimOrNull(doc?.Taxonomia?.Especie)
+    };
+    const speciesInfo = {
+      scientificName: trimOrNull(doc?.NombreCientifico) || taxonomy.species || label,
+      taxonomy,
+      imageUrl: extractImageUrl(doc),
+      commonName: trimOrNull(doc?.NombreComun),
+      source: trimOrNull(doc?.Fuente || doc?.FuenteDatos || doc?.Dataset)
+    };
+    return { lat: latNum, lng: lngNum, label, color, speciesInfo };
 }
 // Match taxonomia para filtros avanzados.
 function matchTaxonomia(doc, { reino, filo, clase, orden, familia, genero, especie }) {
