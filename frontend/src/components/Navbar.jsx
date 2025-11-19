@@ -16,6 +16,7 @@ const Navbar = () => {
                         <Nav.Link as={Link} to="/explorer">Explorador</Nav.Link>
                         <Nav.Link as={Link} to="/dashboard">Dashboard</Nav.Link>
                         <Nav.Link as={Link} to="/about">Acerca de</Nav.Link>
+                        <Nav.Link as={Link} to="/analisis">Analisis</Nav.Link>
                     </Nav>
                 </BSNavbar.Collapse>
             </Container>

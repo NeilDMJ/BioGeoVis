@@ -4,6 +4,7 @@ import Explorer from './pages/Explorer';
 import MapView from './pages/MapView';
 import AboutPage from './pages/About';
 import Dashboard from './pages/Dashboard';
+import Analisis from './pages/Analisis';
 
 function App(){
   return(
@@ -15,6 +16,7 @@ function App(){
         <Route path="/map" element={<MapView />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/analisis" element = {<Analisis/>}/>
       </Routes>
     </Router>
   );
