@@ -34,13 +34,14 @@ function AnalyticsLineChart({ data, color = '#FFE8DB' }) {
               fill: '#9ca3af',
               fontSize: 12,
               dy: 8,
+              dx: 50,
               transform: 'rotate(-20deg)',
               textAnchor: 'end'
             })} />
             <AnimatedAxis orientation="left" hideAxisLine tickLabelProps={() => ({
               fill: '#9ca3af',
               fontSize: 12,
-              dx: -4
+              dx: -10
             })} />
             <AnimatedLineSeries
               dataKey="temporal"

@@ -35,7 +35,10 @@ function AnalyticsBarChart({ data, color = '#739EC9' }) {
             <AnimatedAxis orientation="bottom" labelColor="#9ca3af" tickLabelProps={() => ({
               fill: '#9ca3af',
               fontSize: 12,
-              dy: 8
+              dy: 25,
+              dx: -20,
+              angle: -25 
+
             })} />
             <AnimatedAxis orientation="left" hideAxisLine tickLabelProps={() => ({
               fill: '#9ca3af',
