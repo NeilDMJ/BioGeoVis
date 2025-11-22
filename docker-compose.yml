@@ -20,10 +20,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Cambiar a Atlas cuando esté listo (comentar mongo local)
-      #MONGO_URI: mongodb://admin:123123@mongo:27017
-      MONGO_URI: mongodb+srv://dantemartinez175_db_user:7VCtaFFGK8k7bQDZ@biogeovis-cluster.t0vhtwq.mongodb.net/?retryWrites=true&w=majority
-      MONGO_DB: biogeovis
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DB: ${MONGO_DB:-biogeovis}
     depends_on:
       - mongo
 
