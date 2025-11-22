@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-spring/web": "^9.7.3",
+    "@visx/responsive": "^3.12.0",
+    "@visx/xychart": "^3.12.0",
     "bootstrap": "^5.3.8",
     "globe.gl": "^2.33.0",
     "leaflet": "^1.9.4",

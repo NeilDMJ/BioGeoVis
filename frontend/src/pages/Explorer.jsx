@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import Globe from 'globe.gl';
 import Filter from '../components/Filter';
-import { fetchAvistamientosAdvanced } from '../services/api';
+import { fetchAvistamientosAdvanced, persistAdvancedFilters } from '../services/api';
 
 function Explorer() {
   const navigate = useNavigate();
@@ -82,6 +82,11 @@ function Explorer() {
     return () => { cancelled = true; };
   }, [advancedFilters]);
 
+  const handleApplyAdvancedFilters = (filters) => {
+    setAdvancedFilters(filters);
+    persistAdvancedFilters(filters);
+  };
+
   return (
     <>
       <div
@@ -156,7 +161,7 @@ function Explorer() {
           onChangeView={(v) => console.log('vista:', v)}
           onSearch={(q) => console.log('buscar:', q)}
           onApplyCoordinates={(c) => console.log('coords:', c)}
-          onApplyAdvancedFilters={(f) => setAdvancedFilters(f)}
+          onApplyAdvancedFilters={handleApplyAdvancedFilters}
         />
       </div>
     </>

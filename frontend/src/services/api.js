@@ -13,6 +13,22 @@ async function apiGet(path) {
   return res.json();
 }
 
+async function apiPost(path, body, signal) {
+  const url = `${BASE_URL}${path}`;
+  console.debug('[API] POST', url, body);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body ?? {}),
+    signal
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error ${res.status} posting ${path}: ${text}`);
+  }
+  return res.json();
+}
+
 // Funcion que construye la ruta del endpoint de taxonomía a partir de los filtros; usa wildcard '*' para vacíos.
 function buildTaxonomiaPath({ reino, filo, clase, orden, familia, genero, especie }) {
   const sanitize = v => (v && v.trim()) ? encodeURIComponent(v.trim()) : '*';
@@ -224,3 +240,54 @@ export async function fetchAvistamientosAdvanced(filters) {
 }
 
 export { toMarker };
+
+export async function fetchAnalytics({ filters = {}, dimension = 'family', limit = 2000 } = {}, { signal } = {}) {
+  return apiPost('/api/analytics/summary', {
+    filters: filters || {},
+    dimension,
+    limit
+  }, signal);
+}
+
+export async function fetchAnalyticsDetail({ chartId, filters = {}, dimension = 'family', limit = 12 } = {}, { signal } = {}) {
+  if (!chartId) {
+    throw new Error('chartId es requerido para obtener el detalle');
+  }
+  return apiPost('/api/analytics/detail', {
+    chartId,
+    filters: filters || {},
+    dimension,
+    limit
+  }, signal);
+}
+
+export const ADVANCED_FILTERS_STORAGE_KEY = 'biogeovis:advancedFilters';
+
+export function persistAdvancedFilters(filters) {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(ADVANCED_FILTERS_STORAGE_KEY, JSON.stringify(filters));
+  } catch (error) {
+    console.warn('No se pudo persistir filtros:', error);
+  }
+}
+
+export function readPersistedFilters() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = sessionStorage.getItem(ADVANCED_FILTERS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn('No se pudieron leer los filtros persistidos:', error);
+    return null;
+  }
+}
+
+export function clearPersistedFilters() {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(ADVANCED_FILTERS_STORAGE_KEY);
+  } catch (error) {
+    console.warn('No se pudo limpiar filtros persistidos:', error);
+  }
+}
