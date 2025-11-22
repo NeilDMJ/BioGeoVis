@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./Filter.css";
 
 export default function Filter({
@@ -6,8 +6,18 @@ export default function Filter({
   onSearch,
   onApplyCoordinates,
   onApplyAdvancedFilters,
+  initialView = "Termico",
+  viewOptions,
+  searchLoading = false,
+  searchMessage,
+  searchMessageTone = "muted",
 }) {
-  const [view, setView] = useState("Termico");
+  const options = useMemo(() => {
+    if (Array.isArray(viewOptions) && viewOptions.length) return viewOptions;
+    return ["Estandar", "Relieve", "Termico"];
+  }, [viewOptions]);
+
+  const [view, setView] = useState(initialView);
   const [search, setSearch] = useState("");
   const [coords, setCoords] = useState({ lat: "", lon: "" });
   const [open, setOpen] = useState(false); // despliegue filtros avanzados
@@ -24,9 +34,19 @@ export default function Filter({
     fechaFin: "",
   });
 
+  useEffect(() => {
+    setView(initialView);
+  }, [initialView]);
+
   const selectView = (v) => {
     setView(v);
     onChangeView?.(v);
+  };
+
+  const triggerSearch = () => {
+    const term = search.trim();
+    if (!term) return;
+    onSearch?.(term);
   };
 
   const applyCoords = (e) => {
@@ -137,7 +157,7 @@ export default function Filter({
           </div>
 
           <div className="segmented">
-            {["Relieve", "Termico", "Estandar"].map((v) => (
+            {options.map((v) => (
               <button
                 key={v}
                 className={`segmented-item ${view === v ? "active" : ""}`}
@@ -156,16 +176,28 @@ export default function Filter({
                 placeholder="Buscar ubicación o lugar"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && onSearch?.(search)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    triggerSearch();
+                  }
+                }}
               />
               <button
-                className="icon-btn"
+                className="icon-btn search-btn"
                 title="Buscar"
-                onClick={() => onSearch?.(search)}
+                type="button"
+                disabled={searchLoading}
+                onClick={triggerSearch}
               >
-                
+                {searchLoading ? "..." : "Ir"}
               </button>
             </div>
+            {searchMessage && (
+              <p className={`search-feedback ${searchMessageTone}`} aria-live="polite">
+                {searchMessage}
+              </p>
+            )}
           </div>
         </section>
 
