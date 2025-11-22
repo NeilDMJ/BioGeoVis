@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from .models import (
@@ -43,7 +44,9 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "https://localhost:5173",
-        "https://bio-geo-vis-3sfh.vercel.app"
+        "https://bio-geo-vis-3sfh.vercel.app",
+        "https://*.railway.app",
+        "https://*.up.railway.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -53,8 +56,15 @@ app.add_middleware(
 # Comprimir respuestas grandes para acelerar transferencia
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
+# Configuración de MongoDB (soporta local y Atlas)
 mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-client = MongoClient(mongo_uri)
+
+# Si es Atlas (mongodb+srv), usar ServerApi
+if mongo_uri.startswith("mongodb+srv://"):
+    client = MongoClient(mongo_uri, server_api=ServerApi('1'))
+else:
+    client = MongoClient(mongo_uri)
+
 db = client[os.getenv("MONGO_DB", "biogeovis")]
 # Tomar en cuenta que los datos de salida se estan limitando a 1000 registros para evitar sobrecarga
 @app.get("/")

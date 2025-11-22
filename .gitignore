@@ -44,3 +44,6 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+
+#atlas
+biogeovis-atlas.archive

@@ -1,0 +1,138 @@
+:root{
+    --color-primary: #000000;
+    --color-secondary: #739EC9;
+    --color-gradient-secondary: #1b3a5a;
+    --color-accent: #739EC9;
+    --color-text-primary: #FFE8DB;
+    --color-text-secondary: #9ca3af;
+}
+
+.login-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-gradient-secondary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.login-logo {
+    color: var(--color-accent);
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    color: #555555;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.login-card .form-label {
+    color: #333333;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.login-card .form-control {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #333333;
+    padding: 0.75rem;
+    border-radius: 8px;
+}
+
+.login-card .form-control:focus {
+    background-color: #ffffff;
+    border-color: var(--color-secondary);
+    color: #333333;
+    box-shadow: 0 0 0 0.2rem rgba(115, 158, 201, 0.25);
+}
+
+.login-card .form-control::placeholder {
+    color: #999999;
+}
+
+.login-card .form-check-label {
+    color: #333333;
+}
+
+.forgot-password-link {
+    color: var(--color-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.forgot-password-link:hover {
+    color: #16213e;
+}
+
+.register-link {
+    color: var(--color-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.register-link:hover {
+    color: #16213e;
+}
+
+.back-to-home {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.back-to-home:hover {
+    color: #ffffff;
+}
+
+.alert-danger {
+    background-color: rgba(191, 9, 47, 0.2);
+    border: 1px solid rgba(191, 9, 47, 0.5);
+    color: #ff6b6b;
+    border-radius: 8px;
+}
+
+/* Botón de inicio de sesión */
+.login-card .btn-primary {
+    padding: 0.75rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.login-card .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(115, 158, 201, 0.4);
+}
+
+.login-card .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-card {
+        margin: 1rem;
+    }
+
+    .login-card .card-body {
+        padding: 2rem !important;
+    }
+
+    .login-logo {
+        font-size: 2rem;
+    }
+}

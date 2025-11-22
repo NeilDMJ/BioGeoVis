@@ -1,17 +1,17 @@
 services:
-  mongo:
-    image: mongo:7
-    container_name: biogeovis-mongo
-    restart: always
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: 123123
-      MONGO_INITDB_DATABASE: biogeovis
-    volumes:
-      - ./mongo_data:/data/db
-      - ./backend/database/init:/docker-entrypoint-initdb.d
+  # mongo:
+  #   image: mongo:7
+  #   container_name: biogeovis-mongo
+  #   restart: always
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: 123123
+  #     MONGO_INITDB_DATABASE: biogeovis
+  #   volumes:
+  #     - ./mongo_data:/data/db
+  #     - ./backend/database/init:/docker-entrypoint-initdb.d
 
   backend:
     build: ./backend
@@ -20,10 +20,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MONGO_URI: mongodb://admin:123123@mongo:27017
-      MONGO_DB: biogeovis
-    depends_on:
-      - mongo
+      MONGO_URI: ${MONGO_URI}
+      MONGO_DB: ${MONGO_DB:-biogeovis}
 
   # frontend:
   #   build: ./frontend
@@ -39,22 +37,22 @@ services:
   #   depends_on:
   #     - backend
 
-  mongo-express:
-    image: mongo-express
-    container_name: biogeovis-mongo-express
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: 123123
-      ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
-      ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: 123123
+#   mongo-express:
+#     image: mongo-express
+#     container_name: biogeovis-mongo-express
+#     restart: always
+#     ports:
+#       - "8081:8081"
+#     environment:
+#       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+#       ME_CONFIG_MONGODB_ADMINPASSWORD: 123123
+#       ME_CONFIG_MONGODB_SERVER: mongo
+#       ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+#       ME_CONFIG_BASICAUTH_USERNAME: admin
+#       ME_CONFIG_BASICAUTH_PASSWORD: 123123
 
-    depends_on:
-      - mongo
+#     depends_on:
+#       - mongo
 
-volumes:
-  mongo_data:
+# volumes:
+#   mongo_data:
