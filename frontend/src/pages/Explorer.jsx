@@ -151,7 +151,19 @@ function Explorer() {
           variant="primary"
           size="sm"
         >
-          ← Inicio
+          Inicio
+        </Button>
+        <Button 
+          onClick={() => navigate('/Dashboard')}
+          varian ="primary"
+          size ="sm"
+          style={
+            {
+              marginLeft : 20
+            }
+          }
+        >
+          Graficas
         </Button>
       </div>
 
