@@ -1,13 +1,79 @@
+import { useEffect, useMemo, useState } from 'react';
 import './SpeciesInfoCard.css';
+import { getSpeciesImage } from '../services/speciesImage';
 
 const FALLBACK_IMAGE = 'https://placehold.co/400x260/1f2937/FFFFFF?text=BioGeoVis';
+
+const buildBaseState = (species) => {
+  const info = species?.speciesInfo || {};
+  const baseImage = info.imageUrl || null;
+  return {
+    url: baseImage,
+    loading: false,
+    meta: baseImage
+      ? {
+          source: info.source || null,
+          license: info.license || null
+        }
+      : null,
+    error: null
+  };
+};
 
 function SpeciesInfoCard({ species, onClose }) {
   if (!species) return null;
   const info = species.speciesInfo || {};
   const taxonomy = info.taxonomy || {};
+  const scientificName = info.scientificName || species.label || '';
 
-  const taxonomyRows = [
+  const [imageState, setImageState] = useState(() => buildBaseState(species));
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+    const baseImage = info.imageUrl || null;
+
+    if (!scientificName) {
+      setImageState({ url: baseImage, loading: false, meta: null, error: null });
+      return () => controller.abort();
+    }
+
+    if (baseImage) {
+      setImageState(buildBaseState(species));
+      return () => controller.abort();
+    }
+
+    setImageState({ url: null, loading: true, meta: null, error: null });
+    (async () => {
+      try {
+        const payload = await getSpeciesImage(scientificName, { signal: controller.signal });
+        if (!isMounted) return;
+        if (payload?.imageUrl) {
+          setImageState({
+            url: payload.imageUrl,
+            loading: false,
+            meta: {
+              source: payload.source || 'iNaturalist',
+              license: payload.license || null
+            },
+            error: null
+          });
+        } else {
+          setImageState({ url: null, loading: false, meta: null, error: 'Sin imagen disponible' });
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setImageState({ url: null, loading: false, meta: null, error: 'No se pudo cargar la imagen' });
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [species, info.imageUrl, scientificName]);
+
+  const taxonomyRows = useMemo(() => ([
     { label: 'Reino', value: taxonomy.kingdom },
     { label: 'Filo', value: taxonomy.phylum },
     { label: 'Clase', value: taxonomy.class },
@@ -15,18 +81,22 @@ function SpeciesInfoCard({ species, onClose }) {
     { label: 'Familia', value: taxonomy.family },
     { label: 'Genero', value: taxonomy.genus },
     { label: 'Especie', value: taxonomy.species }
-  ];
+  ]), [taxonomy]);
 
-  const metadata = [
-    info.commonName && { label: 'Nombre comun', value: info.commonName },
-    info.source && { label: 'Fuente', value: info.source }
-  ].filter(Boolean);
+  const metadata = useMemo(() => (
+    [
+      info.commonName && { label: 'Nombre comun', value: info.commonName },
+      info.source && { label: 'Fuente', value: info.source }
+    ].filter(Boolean)
+  ), [info.commonName, info.source]);
 
   const handleImageError = (event) => {
-    if (event?.target?.src !== FALLBACK_IMAGE) {
-      event.target.src = FALLBACK_IMAGE;
-    }
+    if (event?.target?.src === FALLBACK_IMAGE) return;
+    setImageState((prev) => ({ ...prev, url: null, error: 'Sin imagen disponible' }));
+    event.target.src = FALLBACK_IMAGE;
   };
+
+  const resolvedImage = imageState.url || FALLBACK_IMAGE;
 
   return (
     <div className="species-card" role="dialog" aria-label="Detalle de especie">
@@ -34,13 +104,20 @@ function SpeciesInfoCard({ species, onClose }) {
         x
       </button>
       <div className="species-card__body">
-        <div className="species-card__media">
+        <div className={`species-card__media ${imageState.loading ? 'is-loading' : ''}`}>
+          {imageState.loading && <div className="species-card__media-status">Cargando imagen...</div>}
+          {!imageState.loading && imageState.error && (
+            <div className="species-card__media-status error">{imageState.error}</div>
+          )}
           <img
-            src={info.imageUrl || FALLBACK_IMAGE}
+            src={resolvedImage}
             alt={info.scientificName || species.label || 'Especie'}
             onError={handleImageError}
             loading="lazy"
           />
+          {imageState.meta?.source && (
+            <span className="species-card__media-badge">Fuente: {imageState.meta.source}</span>
+          )}
         </div>
         <div className="species-card__content">
           <p className="species-card__eyebrow">Especie registrada</p>

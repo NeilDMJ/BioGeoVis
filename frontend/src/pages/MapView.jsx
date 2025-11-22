@@ -156,7 +156,7 @@ function MapView() {
           onClick={() => navigate('/explorer')}
           variant="primary"
         >
-          ← Volver al Globo
+          Volver al Globo
         </Button>
       </div>
 
