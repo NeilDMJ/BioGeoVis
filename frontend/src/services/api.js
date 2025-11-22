@@ -1,5 +1,5 @@
 // Api centralizado para los endpoints de avistamientos del backend
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 async function apiGet(path) {
   const url = `${BASE_URL}${path}`;
