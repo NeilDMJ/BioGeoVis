@@ -34,8 +34,7 @@ const Login = () => {
 
         try {
             // Aquí llamarás a tu API de login
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            // const response = await fetch(`${API_URL}/api/login`, {
+            // const response = await fetch('http://localhost:8000/api/login', {
             //     method: 'POST',
             //     headers: { 'Content-Type': 'application/json' },
             //     body: JSON.stringify(formData)
@@ -127,7 +126,7 @@ const Login = () => {
                             </Card.Body>
                         </Card>
 
-                        <div className="text-center mt-3">
+                        <div className="text-c enter mt-3">
                             <Link to="/home" className="back-to-home">
                                 ← Volver al inicio
                             </Link>
