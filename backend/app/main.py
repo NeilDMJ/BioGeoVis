@@ -2,9 +2,18 @@ from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from .models import Avistamiento
+from .models import (
+    Avistamiento,
+    AnalyticsRequest,
+    AnalyticsResponse,
+    AnalyticsDetailRequest,
+    AnalyticsDetailResponse,
+)
 import os
 from datetime import datetime
+from typing import Any, Dict, Optional
+from collections import Counter
+import re
 
 app = FastAPI()
 
@@ -350,6 +359,363 @@ def get_avistamientos_agrupados_por_fecha():
         return resultados
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error agrupando por fecha: {e}")
+
+################################ Analytics #######################################
+DATE_INPUT_FORMATS = [
+    "%Y-%m-%d",
+    "%d/%m/%Y",
+    "%Y/%m/%d",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%dT%H:%M:%S.%f",
+]
+
+DIMENSION_CONFIG = {
+    "species": {"label": "Especie", "path": "Taxonomia.Especie", "filter_key": "especie"},
+    "family": {"label": "Familia", "path": "Taxonomia.Familia", "filter_key": "familia"},
+    "order": {"label": "Orden", "path": "Taxonomia.Orden", "filter_key": "orden"},
+    "location": {"label": "Ubicación", "path": "Ubicacion.Pais", "filter_key": "pais"},
+}
+
+DEFAULT_DIMENSION_KEY = "family"
+
+CHART_FIELD_MAP = {
+    "fauna-breakdown": {"path": "Taxonomia.Clase", "label": "Clase", "filter_key": "clase"},
+    "type-distribution": {"path": "Taxonomia.Orden", "label": "Orden", "filter_key": "orden"},
+    "geo-density": {"path": "Ubicacion.Pais", "label": "País", "filter_key": "pais"},
+}
+
+DETAIL_DOCUMENT_LIMIT = 3000
+
+
+def _safe_trim(value: Optional[Any]) -> Optional[str]:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _ci_regex(value: str) -> Dict[str, Any]:
+    return {"$regex": f"^{re.escape(value)}$", "$options": "i"}
+
+
+def _parse_date(value: Optional[str]) -> Optional[datetime]:
+    if not value:
+        return None
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    for fmt in DATE_INPUT_FORMATS:
+        try:
+            return datetime.strptime(cleaned, fmt)
+        except ValueError:
+            continue
+    try:
+        iso = cleaned.replace("Z", "+00:00")
+        return datetime.fromisoformat(iso).replace(tzinfo=None)
+    except Exception:
+        return None
+
+
+def _normalize_event_date(raw_value: Any) -> Optional[datetime]:
+    if isinstance(raw_value, datetime):
+        return raw_value
+    if isinstance(raw_value, str):
+        return _parse_date(raw_value)
+    return None
+
+
+def _build_filters_query(filters) -> Dict[str, Any]:
+    if not filters:
+        return {}
+    mapping = {
+        "nombreCientifico": "NombreCientifico",
+        "especie": "Taxonomia.Especie",
+        "reino": "Taxonomia.Reino",
+        "filo": "Taxonomia.Filo",
+        "clase": "Taxonomia.Clase",
+        "orden": "Taxonomia.Orden",
+        "familia": "Taxonomia.Familia",
+        "genero": "Taxonomia.Genero",
+        "pais": "Ubicacion.Pais",
+    }
+    query: Dict[str, Any] = {}
+    for attr, field in mapping.items():
+        value = _safe_trim(getattr(filters, attr, None))
+        if value:
+            query[field] = _ci_regex(value)
+
+    start = _parse_date(getattr(filters, "fechaInicio", None))
+    end = _parse_date(getattr(filters, "fechaFin", None))
+    if start and end and start > end:
+        start, end = end, start
+    if start or end:
+        date_query: Dict[str, Any] = {}
+        if start:
+            date_query["$gte"] = start
+        if end:
+            date_query["$lte"] = end
+        query["FechaEvento"] = date_query
+    return query
+
+
+def _resolve_dimension_config(dimension: Optional[str]):
+    key = (dimension or DEFAULT_DIMENSION_KEY).lower()
+    config = DIMENSION_CONFIG.get(key, DIMENSION_CONFIG[DEFAULT_DIMENSION_KEY])
+    if config is DIMENSION_CONFIG[DEFAULT_DIMENSION_KEY]:
+        key = DEFAULT_DIMENSION_KEY
+    return key, config
+
+
+def _resolve_chart_detail_config(chart_id: str, dimension_config: Dict[str, Any]):
+    if chart_id == "family-classification":
+        return {
+            "type": "dimension",
+            "path": dimension_config["path"],
+            "label": dimension_config["label"],
+            "filter_key": dimension_config.get("filter_key"),
+        }
+    if chart_id == "temporal-distribution":
+        return {
+            "type": "temporal",
+            "label": "Periodo",
+            "filter_key": None,
+        }
+    base = CHART_FIELD_MAP.get(chart_id)
+    if base:
+        return {
+            "type": "categorical",
+            "path": base["path"],
+            "label": base["label"],
+            "filter_key": base.get("filter_key"),
+        }
+    raise HTTPException(status_code=400, detail=f"chartId '{chart_id}' no soportado para detalle")
+
+
+def _fetch_documents(filters, limit):
+    query = _build_filters_query(filters)
+    cursor = db.avistamientos.find(query)
+    return list(cursor.limit(limit))
+
+
+def _extract_path(document: Dict[str, Any], path: str) -> Optional[str]:
+    parts = path.split(".")
+    cursor: Any = document
+    for part in parts:
+        if cursor is None:
+            return None
+        if isinstance(cursor, dict):
+            cursor = cursor.get(part)
+        else:
+            return None
+    if cursor is None:
+        return None
+    return _safe_trim(cursor)
+
+
+def _counter_to_series(counter: Counter, top: Optional[int] = None):
+    items = counter.most_common(top)
+    return [
+        {"label": label or "Sin dato", "value": int(value)}
+        for label, value in items
+    ]
+
+
+def _build_bucket_series_with_samples(documents, extractor, top: int = 12):
+    counter: Counter = Counter()
+    samples: Dict[str, list] = {}
+    for doc in documents:
+        label = extractor(doc) or "Sin dato"
+        counter[label] += 1
+        bucket_samples = samples.setdefault(label, [])
+        if len(bucket_samples) < 3:
+            example = _extract_path(doc, "NombreCientifico") or _extract_path(doc, "Taxonomia.Especie") or str(doc.get("_id"))
+            if example and example not in bucket_samples:
+                bucket_samples.append(example)
+    buckets = []
+    for label, value in counter.most_common(top):
+        buckets.append({"label": label, "value": int(value), "samples": samples.get(label, [])})
+    return buckets
+
+
+def _temporal_series(documents):
+    counter: Counter = Counter()
+    for doc in documents:
+        dt = _normalize_event_date(doc.get("FechaEvento"))
+        if not dt:
+            continue
+        key = dt.strftime("%Y-%m")
+        counter[key] += 1
+    series = []
+    for key in sorted(counter.keys()):
+        try:
+            dt = datetime.strptime(key, "%Y-%m")
+            label = dt.strftime("%b %Y")
+        except ValueError:
+            label = key
+        series.append({"label": label, "value": int(counter[key])})
+    return series
+
+
+def _temporal_buckets_with_samples(documents, top: int = 12):
+    base_series = _temporal_series(documents)
+    if not base_series:
+        return []
+    if top and top < len(base_series):
+        base_series = base_series[-top:]
+    allowed_labels = {bucket["label"] for bucket in base_series}
+    samples: Dict[str, list] = {label: [] for label in allowed_labels}
+    for doc in documents:
+        dt = _normalize_event_date(doc.get("FechaEvento"))
+        if not dt:
+            continue
+        label = dt.strftime("%b %Y")
+        if label not in allowed_labels:
+            continue
+        bucket_samples = samples[label]
+        if len(bucket_samples) < 3:
+            example = _extract_path(doc, "NombreCientifico") or _extract_path(doc, "Taxonomia.Especie") or str(doc.get("_id"))
+            if example and example not in bucket_samples:
+                bucket_samples.append(example)
+    buckets = []
+    for bucket in base_series:
+        buckets.append({
+            "label": bucket["label"],
+            "value": int(bucket["value"]),
+            "samples": samples.get(bucket["label"], []),
+        })
+    return buckets
+
+
+def _date_range_label(documents):
+    dates = [
+        _normalize_event_date(doc.get("FechaEvento"))
+        for doc in documents
+    ]
+    filtered = sorted([d for d in dates if d])
+    if not filtered:
+        return "Sin datos"
+    return f"{filtered[0].strftime('%d %b %Y')} – {filtered[-1].strftime('%d %b %Y')}"
+
+
+def _format_number(number: int) -> str:
+    return f"{number:,}".replace(",", " ")
+
+
+def _empty_analytics_response() -> AnalyticsResponse:
+    base_series = []
+    return AnalyticsResponse(
+        kpis=[
+            {"id": "total-records", "label": "Registros", "value": "0"},
+            {"id": "dimension", "label": f"{DIMENSION_CONFIG[DEFAULT_DIMENSION_KEY]['label']}s únicos", "value": "0"},
+            {"id": "unique-species", "label": "Especies únicas", "value": "0"},
+            {"id": "date-range", "label": "Rango temporal", "value": "Sin datos"},
+        ],
+        faunaBreakdown=base_series,
+        typeDistribution=base_series,
+        dimensionRanking=base_series,
+        temporalSeries=base_series,
+        geoDensity=base_series,
+        dimensionLabel=DIMENSION_CONFIG[DEFAULT_DIMENSION_KEY]["label"],
+        dimensionKey=DEFAULT_DIMENSION_KEY,
+    )
+
+
+@app.post("/api/analytics/summary", response_model=AnalyticsResponse)
+def get_analytics_summary(payload: AnalyticsRequest):
+    try:
+        dimension_key, dimension_config = _resolve_dimension_config(payload.dimension)
+        filters = payload.filters
+        documents = _fetch_documents(filters, payload.limit)
+        if not documents:
+            empty = _empty_analytics_response()
+            empty.dimensionKey = dimension_key
+            empty.dimensionLabel = dimension_config["label"]
+            empty.kpis[1]["label"] = f"{dimension_config['label']}s únicos"
+            return empty
+
+        total = len(documents)
+        species_values = {
+            value
+            for doc in documents
+            for value in [
+                _extract_path(doc, "Taxonomia.Especie") or _extract_path(doc, "NombreCientifico")
+            ]
+            if value
+        }
+        unique_species = len(species_values)
+        dimension_counter = Counter(
+            filter(None, (_extract_path(doc, dimension_config["path"]) for doc in documents))
+        )
+        unique_dimension = len(dimension_counter)
+
+        fauna_counter = Counter(
+            filter(None, (_extract_path(doc, "Taxonomia.Clase") for doc in documents))
+        )
+        type_counter = Counter(
+            filter(None, (_extract_path(doc, "Taxonomia.Orden") for doc in documents))
+        )
+        geo_counter = Counter(
+            filter(None, (_extract_path(doc, "Ubicacion.Pais") for doc in documents))
+        )
+
+        response = AnalyticsResponse(
+            kpis=[
+                {"id": "total-records", "label": "Registros", "value": _format_number(total)},
+                {"id": "dimension", "label": f"{dimension_config['label']}s únicos", "value": _format_number(unique_dimension)},
+                {"id": "unique-species", "label": "Especies únicas", "value": _format_number(unique_species)},
+                {"id": "date-range", "label": "Rango temporal", "value": _date_range_label(documents)},
+            ],
+            faunaBreakdown=_counter_to_series(fauna_counter, top=8),
+            typeDistribution=_counter_to_series(type_counter, top=8),
+            dimensionRanking=_counter_to_series(dimension_counter, top=10),
+            temporalSeries=_temporal_series(documents),
+            geoDensity=_counter_to_series(geo_counter, top=10),
+            dimensionLabel=dimension_config["label"],
+            dimensionKey=dimension_key,
+        )
+        return response
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error al obtener analytics: {exc}")
+
+
+@app.post("/api/analytics/detail", response_model=AnalyticsDetailResponse)
+def get_analytics_detail(payload: AnalyticsDetailRequest):
+    try:
+        _, dimension_config = _resolve_dimension_config(payload.dimension)
+        chart_config = _resolve_chart_detail_config(payload.chartId, dimension_config)
+        documents = _fetch_documents(payload.filters, DETAIL_DOCUMENT_LIMIT)
+        bucket_limit = max(1, min(payload.limit or 12, 50))
+        if not documents:
+            return AnalyticsDetailResponse(
+                chartId=payload.chartId,
+                bucketLabel=chart_config["label"],
+                filterKey=chart_config.get("filter_key"),
+                dimensionLabel=dimension_config["label"],
+                buckets=[],
+                total=0,
+            )
+
+        if chart_config["type"] == "temporal":
+            buckets = _temporal_buckets_with_samples(documents, top=bucket_limit)
+        else:
+            extractor = lambda doc, path=chart_config["path"]: _extract_path(doc, path)
+            buckets = _build_bucket_series_with_samples(documents, extractor, top=bucket_limit)
+
+        total = sum(bucket["value"] for bucket in buckets)
+        return AnalyticsDetailResponse(
+            chartId=payload.chartId,
+            bucketLabel=chart_config["label"],
+            filterKey=chart_config.get("filter_key"),
+            dimensionLabel=dimension_config["label"],
+            buckets=buckets,
+            total=total,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error al obtener detalle de analytics: {exc}")
 
 @app.get("/api/avistamientos/agrupados/especie")
 def get_avistamientos_agrupados_por_especie():
