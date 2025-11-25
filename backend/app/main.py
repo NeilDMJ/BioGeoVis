@@ -43,6 +43,8 @@ TAXONOMY_FIELD_MAP = [
     ("pais", "Ubicacion.Pais"),
 ]
 
+TAXONOMY_OPTION_LIMIT = 2000
+
 
 LOCATION_FIELD_MAP = [
     ("ciudad", "Ubicacion.Ciudad"),
@@ -53,12 +55,13 @@ LOCATION_FIELD_MAP = [
 ]
 
 
-def _facet_spec() -> Dict[str, List[Dict[str, Any]]]:
-    """Construye la definición del $facet para cada nivel taxonómico."""
+def _facet_spec(limit: int = TAXONOMY_OPTION_LIMIT) -> Dict[str, List[Dict[str, Any]]]:
+    """Construye la definición del $facet para cada nivel taxonómico limitando resultados."""
     return {
         key: [
             {"$group": {"_id": f"${field}"}},
-            {"$sort": {"_id": 1}}
+            {"$sort": {"_id": 1}},
+            {"$limit": limit},
         ]
         for key, field in TAXONOMY_FIELD_MAP
     }
