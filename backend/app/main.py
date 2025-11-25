@@ -44,6 +44,7 @@ TAXONOMY_FIELD_MAP = [
 ]
 
 TAXONOMY_OPTION_LIMIT = 2000
+TAXONOMY_SAMPLE_SIZE = 2000
 
 
 LOCATION_FIELD_MAP = [
@@ -86,6 +87,11 @@ def _cached_taxonomy_options(filter_key: str) -> Dict[str, List[str]]:
     pipeline: List[Dict[str, Any]] = []
     if match_query:
         pipeline.append({"$match": match_query})
+    # Para evitar scans completos sobre colecciones grandes, se toma una muestra
+    # determinística (primeros documentos según el orden natural de almacenamiento).
+    # Esto mantiene la latencia baja en ambientes con cientos de miles de registros
+    # sacrificando la exhaustividad cuando no hay filtros activos.
+    pipeline.append({"$limit": TAXONOMY_SAMPLE_SIZE})
     pipeline.append({"$facet": _facet_spec()})
 
     result = list(db.avistamientos.aggregate(pipeline))

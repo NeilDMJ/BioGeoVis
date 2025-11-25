@@ -8,7 +8,7 @@ Panel interactivo para explorar avistamientos de biodiversidad, combinar filtros
 - **Analytics dimension-aware:** KPIs, rankings y series cambian según la dimensión activa (especie, familia, orden, ubicación).
 - **Drawer de detalle:** cada tarjeta de analytics expone “Ver detalles” con buckets, muestras ejemplo y acciones para saltar a Explorer o exportar CSV.
 - **Seed de datos automatizado:** scripts de inicialización en `backend/database/init` para poblar Mongo al levantar via Docker.
-- **Filtros taxonómicos optimizados:** FastAPI ahora usa un pipeline `$facet` único con caché LRU en memoria; el frontend consume los resultados mediante un hook con cache local y debounce ≥ 600 ms, evitando parpadeos en los selects.
+- **Filtros taxonómicos optimizados:** FastAPI ahora usa un pipeline `$facet` único con caché LRU en memoria y un muestreo duro de 2 000 documentos para evitar scans completos; el frontend consume los resultados mediante un hook con cache local y debounce ≥ 600 ms, evitando parpadeos en los selects.
 
 ## Estructura del repositorio
 ```
