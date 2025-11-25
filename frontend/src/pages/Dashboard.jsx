@@ -15,7 +15,9 @@ const DEFAULT_VIEW = 'Estandar';
 const SEARCH_STRATEGIES = [
     { field: 'nombreCientifico', label: 'nombre científico' },
     { field: 'especie', label: 'especie' },
-    { field: 'pais', label: 'país' }
+    { field: 'pais', label: 'país' },
+    { field: 'ciudad', label: 'ciudad' },
+    { field: 'estado', label: 'estado' }
 ];
 
 const Dashboard = () => {

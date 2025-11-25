@@ -8,6 +8,7 @@ Panel interactivo para explorar avistamientos de biodiversidad, combinar filtros
 - **Analytics dimension-aware:** KPIs, rankings y series cambian según la dimensión activa (especie, familia, orden, ubicación).
 - **Drawer de detalle:** cada tarjeta de analytics expone “Ver detalles” con buckets, muestras ejemplo y acciones para saltar a Explorer o exportar CSV.
 - **Seed de datos automatizado:** scripts de inicialización en `backend/database/init` para poblar Mongo al levantar via Docker.
+- **Filtros taxonómicos optimizados:** FastAPI ahora usa un pipeline `$facet` único con caché LRU en memoria; el frontend consume los resultados mediante un hook con cache local y debounce ≥ 600 ms, evitando parpadeos en los selects.
 
 ## Estructura del repositorio
 ```
@@ -88,6 +89,12 @@ La app quedará disponible en `http://localhost:5173`. El servicio espera que el
 | `npm run build` | `frontend/` | Build de producción. |
 | `npm run lint` | `frontend/` | ESLint + reglas React Hooks. |
 | `uvicorn app.main:app --reload` | `backend/` | API FastAPI con recarga automática. |
+
+## Verificación manual sugerida
+1. Levanta Mongo + backend (`docker compose up backend mongo mongo-express`) y el frontend (`npm run dev`).
+2. Abre el módulo Explorer, despliega “Filtros avanzados” y tipea rápidamente en los campos taxonómicos; confirma que los selects no se bloquean y muestran opciones coherentes tras ~600 ms.
+3. Cambia combinaciones de filtros (ej. Reino → Filo → Clase) y verifica que la UI conserva el último resultado mientras llega uno nuevo (“keep previous data”).
+4. Repite los pasos anteriores tras reiniciar el backend para comprobar que la caché se invalida correctamente.
 
 ## Próximos pasos sugeridos
 - Ajustar `BASE_URL` para entornos de producción (ej. variables `import.meta.env.VITE_API_URL`).

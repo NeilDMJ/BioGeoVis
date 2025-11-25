@@ -1,11 +1,11 @@
 // Api centralizado para los endpoints de avistamientos del backend
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-async function apiGet(path) {
+async function apiGet(path, { signal } = {}) {
   const url = `${BASE_URL}${path}`;
   // Log para diagnosticar consultas
   console.debug('[API] GET', url);
-  const res = await fetch(url);
+  const res = await fetch(url, { signal });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Error ${res.status} fetching ${path}: ${text}`);
@@ -35,6 +35,19 @@ function buildTaxonomiaPath({ reino, filo, clase, orden, familia, genero, especi
   const seg = [reino, filo, clase, orden, familia, genero, especie].map(sanitize);
   return `/api/avistamientos/taxonomia/${seg.join('/')}`;
 }
+
+const TAXONOMY_QUERY_KEYS = ['reino', 'filo', 'clase', 'orden', 'familia', 'genero', 'especie', 'pais'];
+
+const buildQueryString = (params = {}) => {
+  const qp = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value == null) return;
+    if (typeof value === 'string' && !value.trim()) return;
+    qp.append(key, typeof value === 'string' ? value.trim() : value);
+  });
+  const query = qp.toString();
+  return query ? `?${query}` : '';
+};
 
 const trimOrNull = (value) => {
   if (value == null) return null;
@@ -160,18 +173,20 @@ export async function fetchAvistamientosAdvanced(filters) {
     nombreCientifico,
     especie,
     reino,
+    filo,
     familia,
     clase,
     orden,
     genero,
     pais,
+    ciudad,
+    estado,
     fechaInicio,
     fechaFin,
   } = filters;
+  const filoValue = filo || '';
 
-  const filo = filters.filo || ''; 
-
-  const hasTax = [reino, filo, clase, orden, familia, genero, especie].some(v => v && v.trim());
+  const hasTax = [reino, filoValue, clase, orden, familia, genero, especie].some(v => v && v.trim());
   const hasDateRange = fechaInicio && fechaFin;
 
   let data = [];
@@ -180,7 +195,7 @@ export async function fetchAvistamientosAdvanced(filters) {
     // Estrategia: primero fecha para reducir volumen y luego filtrar taxonomía en cliente.
     try {
       const fechaData = await apiGet(`/api/avistamientos/fecha/${encodeURIComponent(fechaInicio)}/${encodeURIComponent(fechaFin)}`);
-      data = fechaData.filter(d => matchTaxonomia(d, { reino, filo, clase, orden, familia, genero, especie }));
+      data = fechaData.filter(d => matchTaxonomia(d, { reino, filo: filoValue, clase, orden, familia, genero, especie }));
     } catch (e) {
       console.error('Error fetching by fecha+taxonomia:', e);
       throw e;
@@ -194,7 +209,7 @@ export async function fetchAvistamientosAdvanced(filters) {
     }
   } else if (hasTax) {
     try {
-      data = await apiGet(buildTaxonomiaPath({ reino, filo, clase, orden, familia, genero, especie }));
+      data = await apiGet(buildTaxonomiaPath({ reino, filo: filoValue, clase, orden, familia, genero, especie }));
     } catch (e) {
       console.error('Error fetching by taxonomia:', e);
       throw e;
@@ -211,6 +226,20 @@ export async function fetchAvistamientosAdvanced(filters) {
       data = await apiGet(`/api/avistamientos/pais/${encodeURIComponent(pais.trim())}`);
     } catch (e) {
       console.error('Error fetching by país:', e);
+      throw e;
+    }
+  } else if (ciudad && ciudad.trim()) {
+    try {
+      data = await apiGet(`/api/avistamientos/ciudad/${encodeURIComponent(ciudad.trim())}`);
+    } catch (e) {
+      console.error('Error fetching by ciudad:', e);
+      throw e;
+    }
+  } else if (estado && estado.trim()) {
+    try {
+      data = await apiGet(`/api/avistamientos/estado/${encodeURIComponent(estado.trim())}`);
+    } catch (e) {
+      console.error('Error fetching by estado:', e);
       throw e;
     }
   } else if (especie && especie.trim()) {
@@ -240,6 +269,27 @@ export async function fetchAvistamientosAdvanced(filters) {
 }
 
 export { toMarker };
+
+export async function fetchTaxonomyOptions(filters = {}) {
+  const params = {};
+  TAXONOMY_QUERY_KEYS.forEach((key) => {
+    const value = filters[key];
+    if (typeof value === 'string' && value.trim()) {
+      params[key] = value.trim();
+    }
+  });
+  const query = buildQueryString(params);
+  return apiGet(`/api/metadata/taxonomia/opciones${query}`);
+}
+
+export async function fetchLocationSuggestions(term, { signal, limit = 8 } = {}) {
+  if (!term || term.trim().length < 2) {
+    return [];
+  }
+  const query = buildQueryString({ q: term.trim(), limit });
+  const payload = await apiGet(`/api/metadata/ubicaciones/sugerencias${query}`, { signal });
+  return Array.isArray(payload?.results) ? payload.results : [];
+}
 
 export async function fetchAnalytics({ filters = {}, dimension = 'family', limit = 2000 } = {}, { signal } = {}) {
   return apiPost('/api/analytics/summary', {

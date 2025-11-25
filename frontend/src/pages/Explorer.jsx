@@ -174,6 +174,7 @@ function Explorer() {
           onSearch={(q) => console.log('buscar:', q)}
           onApplyCoordinates={(c) => console.log('coords:', c)}
           onApplyAdvancedFilters={handleApplyAdvancedFilters}
+          showViewSection={false}
         />
       </div>
     </>

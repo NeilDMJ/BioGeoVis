@@ -12,9 +12,107 @@ from .models import (
 )
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from functools import lru_cache
+from typing import Any, Dict, List, Optional, Set
 from collections import Counter
 import re
+import json
+
+
+def _normalize_option(value: Optional[Any]) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        text = value.strip()
+        return text or None
+    return str(value)
+
+
+def _regex_exact(value: str) -> Dict[str, Any]:
+    return {"$regex": f"^{re.escape(value.strip())}$", "$options": "i"}
+
+
+TAXONOMY_FIELD_MAP = [
+    ("reino", "Taxonomia.Reino"),
+    ("filo", "Taxonomia.Filo"),
+    ("clase", "Taxonomia.Clase"),
+    ("orden", "Taxonomia.Orden"),
+    ("familia", "Taxonomia.Familia"),
+    ("genero", "Taxonomia.Genero"),
+    ("especie", "Taxonomia.Especie"),
+    ("pais", "Ubicacion.Pais"),
+]
+
+
+LOCATION_FIELD_MAP = [
+    ("ciudad", "Ubicacion.Ciudad"),
+    ("estado", "Ubicacion.Estado"),
+    ("municipio", "Ubicacion.Municipio"),
+    ("localidad", "Ubicacion.Localidad"),
+    ("pais", "Ubicacion.Pais"),
+]
+
+
+def _facet_spec() -> Dict[str, List[Dict[str, Any]]]:
+    """Construye la definición del $facet para cada nivel taxonómico."""
+    return {
+        key: [
+            {"$group": {"_id": f"${field}"}},
+            {"$sort": {"_id": 1}}
+        ]
+        for key, field in TAXONOMY_FIELD_MAP
+    }
+
+
+def _serialize_taxonomy_filters(filters: Dict[str, Optional[str]]) -> str:
+    """Serializa los filtros en un json ordenado para usarlos como clave de caché."""
+    ordered = {key: filters.get(key) for key, _ in TAXONOMY_FIELD_MAP}
+    return json.dumps(ordered, sort_keys=True, ensure_ascii=False)
+
+
+@lru_cache(maxsize=128)
+def _cached_taxonomy_options(filter_key: str) -> Dict[str, List[str]]:
+    """Realiza la agregación facet y la almacena en memoria (por instancia).
+
+    Nota: en despliegues con varios workers cada proceso mantiene su propia
+    caché. Si se requiere coherencia global habría que usar un backend como
+    Redis, pero no se introduce aquí para mantener el footprint actual.
+    """
+    filters = json.loads(filter_key)
+    match_query = _build_taxonomy_query(filters)
+    pipeline: List[Dict[str, Any]] = []
+    if match_query:
+        pipeline.append({"$match": match_query})
+    pipeline.append({"$facet": _facet_spec()})
+
+    result = list(db.avistamientos.aggregate(pipeline))
+    facets = result[0] if result else {}
+    response: Dict[str, List[str]] = {}
+    for key, _ in TAXONOMY_FIELD_MAP:
+        raw_values = facets.get(key, []) or []
+        cleaned: List[str] = []
+        for item in raw_values:
+            normalized = _normalize_option(item.get("_id"))
+            if not normalized:
+                continue
+            cleaned.append(normalized)
+        response[key] = cleaned
+    return response
+
+
+def _build_taxonomy_query(filters: Dict[str, Optional[str]], exclude_key: Optional[str] = None) -> Dict[str, Any]:
+    query: Dict[str, Any] = {}
+    for key, field in TAXONOMY_FIELD_MAP:
+        if key == exclude_key:
+            continue
+        raw_value = filters.get(key)
+        normalized = _normalize_option(raw_value)
+        if not normalized:
+            continue
+        if normalized in {"-", "*"}:
+            continue
+        query[field] = _regex_exact(normalized)
+    return query
 
 app = FastAPI()
 
@@ -181,6 +279,38 @@ def get_avistamientos_by_pais(nombre_pais: str):
     return avistamientos
     
 
+@app.get("/api/avistamientos/ciudad/{ciudad}")
+def get_avistamientos_by_ciudad(ciudad: str):
+    '''Obtener avistamientos por ciudad'''
+    normalized = _normalize_option(ciudad)
+    if not normalized:
+        raise HTTPException(status_code=400, detail="Ciudad requerida")
+    try:
+        query = {"Ubicacion.Ciudad": _regex_exact(normalized)}
+        avistamientos = list(db.avistamientos.find(query).limit(1000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por ciudad: {exc}")
+
+
+@app.get("/api/avistamientos/estado/{estado}")
+def get_avistamientos_by_estado(estado: str):
+    '''Obtener avistamientos por estado/region'''
+    normalized = _normalize_option(estado)
+    if not normalized:
+        raise HTTPException(status_code=400, detail="Estado requerido")
+    try:
+        query = {"Ubicacion.Estado": _regex_exact(normalized)}
+        avistamientos = list(db.avistamientos.find(query).limit(1000))
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por estado: {exc}")
+
+
 @app.get("/api/avistamientos/taxonomia/{reino}/{filo}/{clase}/{orden}/{familia}/{genero}/{especie}")
 def get_avistamientos_by_taxonomia(reino: str, filo: str, clase: str, orden: str, familia: str, genero: str, especie: str):
     """
@@ -256,6 +386,70 @@ def get_avistamientos_by_ubicacion(lat: float, lng: float, tolerancia: float = 0
         return resultados
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por ubicación: {e}")
+
+
+@app.get("/api/metadata/taxonomia/opciones")
+def get_taxonomia_options(
+    reino: Optional[str] = None,
+    filo: Optional[str] = None,
+    clase: Optional[str] = None,
+    orden: Optional[str] = None,
+    familia: Optional[str] = None,
+    genero: Optional[str] = None,
+    especie: Optional[str] = None,
+    pais: Optional[str] = None
+):
+    """Devuelve las listas de opciones filtradas mediante un único $facet."""
+    try:
+        filters = {
+            "reino": reino,
+            "filo": filo,
+            "clase": clase,
+            "orden": orden,
+            "familia": familia,
+            "genero": genero,
+            "especie": especie,
+            "pais": pais,
+        }
+        # Nota: si se ingesta data nueva y se requiere refrescar manualmente,
+        # se puede invocar _cached_taxonomy_options.cache_clear() durante el despliegue.
+        cache_key = _serialize_taxonomy_filters(filters)
+        cached = _cached_taxonomy_options(cache_key)
+        # Se devuelve una copia superficial para evitar mutaciones externas
+        return {key: list(values) for key, values in cached.items()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo opciones taxonómicas: {exc}")
+
+
+@app.get("/api/metadata/ubicaciones/sugerencias")
+def get_location_suggestions(q: str, limit: int = 8):
+    """Sugerencias predictivas para ciudades, estados u otras ubicaciones."""
+    term = (q or "").strip()
+    if len(term) < 2:
+        return {"results": []}
+    regex = {"$regex": f"^{re.escape(term)}", "$options": "i"}
+    suggestions: List[Dict[str, str]] = []
+    seen: Set[str] = set()
+    try:
+        for alias, field in LOCATION_FIELD_MAP:
+            matches = db.avistamientos.distinct(field, {field: regex})
+            for value in matches:
+                normalized = _normalize_option(value)
+                if not normalized:
+                    continue
+                key = normalized.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                suggestions.append({
+                    "label": normalized,
+                    "type": alias,
+                })
+                if len(suggestions) >= limit:
+                    return {"results": suggestions}
+        return {"results": suggestions}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo sugerencias de ubicación: {exc}")
 #########################Faltantes###############################
 @app.get("/api/avistamientos/reino/{reino}")
 def get_avistamientos_por_reino(reino: str):
