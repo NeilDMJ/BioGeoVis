@@ -62,6 +62,9 @@ function Home() {
           <Link to="/about" className="home__nav-link external">
             Acerca de Nosotros
           </Link>
+          <Link to="/login" className="home__nav-link nav-login-cta">
+            Iniciar sesión
+          </Link>
         </nav>
       </header>
 

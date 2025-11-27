@@ -1,0 +1,278 @@
+:root {
+    --register-bg: radial-gradient(circle at top, rgba(10, 22, 38, 0.95), rgba(4, 7, 16, 0.98));
+    --register-panel: rgba(255, 255, 255, 0.03);
+    --register-border: rgba(255, 255, 255, 0.12);
+    --register-glow: rgba(94, 166, 255, 0.25);
+}
+
+.register-page {
+    min-height: 100vh;
+    background: var(--register-bg);
+    color: var(--color-text-primary);
+}
+
+.home__nav.about__nav.login__nav {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    padding: 24px 4vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    background: linear-gradient(90deg, rgba(3, 7, 18, 0.92), rgba(3, 7, 18, 0.35));
+    border-bottom: 1px solid rgba(167, 199, 255, 0.18);
+    backdrop-filter: blur(14px);
+    z-index: 30;
+}
+
+.home__nav.about__nav.login__nav .home__logo {
+    font-size: 30px;
+    letter-spacing: 0.04em;
+}
+
+.home__nav.about__nav.login__nav .home__nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.home__nav.about__nav.login__nav .home__nav-link {
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.home__nav.about__nav.login__nav .home__nav-link:hover,
+.home__nav.about__nav.login__nav .home__nav-link:focus-visible {
+    border-color: rgba(115, 158, 201, 0.5);
+    background: rgba(115, 158, 201, 0.12);
+    color: var(--color-text-primary);
+}
+
+.nav-login-cta {
+    background: linear-gradient(135deg, #5ea6ff, #2a6deb);
+    color: #fff;
+}
+
+.register-shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 4rem) clamp(1.5rem, 5vw, 4rem) 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+.register-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    padding: clamp(1.75rem, 3vw, 2.75rem);
+    border-radius: 28px;
+    border: 1px solid var(--register-border);
+    background: linear-gradient(140deg, rgba(5, 15, 32, 0.95), rgba(16, 32, 54, 0.85));
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.45);
+}
+
+.register-hero__steps {
+    list-style: none;
+    margin: 1rem 0;
+    padding: 0;
+    color: rgba(255, 232, 219, 0.78);
+    line-height: 1.5;
+}
+
+.register-hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.register-hero__status {
+    display: grid;
+    gap: 1rem;
+}
+
+.register-hero__status article {
+    padding: 1.25rem;
+    border-radius: 20px;
+    border: 1px solid var(--register-border);
+    background: rgba(255, 255, 255, 0.04);
+    text-align: center;
+}
+
+.register-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: start;
+}
+
+.register-card,
+.register-support {
+    background: var(--register-panel);
+    border: 1px solid var(--register-border);
+    border-radius: 26px;
+    padding: clamp(1.75rem, 3vw, 2.5rem);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+.register-card__header h2 {
+    margin-bottom: 0.4rem;
+}
+
+.register-card__header p {
+    color: var(--color-text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.register-card .form-label {
+    color: var(--color-text-primary);
+    font-weight: 600;
+}
+
+.register-card .form-control,
+.register-card select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: var(--color-text-primary);
+    border-radius: 12px;
+    padding: 0.75rem;
+}
+
+.register-card .form-control:focus,
+.register-card select:focus {
+    border-color: var(--color-secondary);
+    box-shadow: 0 0 0 0.15rem var(--register-glow);
+}
+
+.register-submit {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 16px;
+    border: none;
+    font-weight: 600;
+    background: linear-gradient(135deg, #5ea6ff, #2a6deb);
+    margin-bottom: 1rem;
+}
+
+.register-card__footer {
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+.register-link {
+    color: var(--color-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 0.25rem;
+}
+
+.register-support h3 {
+    margin-bottom: 0.75rem;
+}
+
+.register-support ol {
+    padding-left: 1.2rem;
+    line-height: 1.5;
+}
+
+.register-support__contact {
+    margin: 1.5rem 0 1rem;
+}
+
+.register-support__contact a {
+    color: var(--color-secondary);
+    text-decoration: none;
+}
+
+.register-support__card {
+    padding: 1rem;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.register-faq {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+.register-faq article {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.25rem;
+}
+
+.register-status {
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.register-status.muted {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.register-status.success {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.45);
+    color: #8ef2c9;
+}
+
+.register-status.error {
+    background: rgba(190, 18, 60, 0.15);
+    border: 1px solid rgba(190, 18, 60, 0.45);
+    color: #ff9ba8;
+}
+
+.scroll-animate {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.scroll-animate.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 960px) {
+    .home__nav.about__nav.login__nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .register-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .register-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .register-hero__status {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .home__nav.about__nav.login__nav .home__nav-links {
+        justify-content: center;
+    }
+
+    .register-hero__cta {
+        flex-direction: column;
+    }
+}

@@ -2,32 +2,32 @@ import L from 'leaflet';
 
 export const TILE_PROVIDERS = {
   carto: {
-    name: 'CARTO Voyager',
+    name: 'Mapa Street',
     url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
   },
   osm: {
-    name: 'OpenStreetMap',
+    name: 'Mapa Estandar  ',
     url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
   },
   opentopo: {
-    name: 'OpenTopoMap',
+    name: 'Mapa con relieve',
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
   },
   wikimedia: {
-    name: 'Wikimedia',
+    name: 'Mapa Cartografico',
     url: 'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
     attribution: 'Wikimedia maps'
   },
   esri: {
-    name: 'Esri WorldImagery',
+    name: 'Mapa satelital',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Tiles &copy; Esri'
   },
   cartoDark: {
-    name: 'CARTO Dark Matter',
+    name: 'Mapa termico',
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
   }

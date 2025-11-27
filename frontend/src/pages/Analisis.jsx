@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Analisis.css';
-import Navbar from '../components/Navbar';
 import AnalyticsBarChart from '../components/charts/AnalyticsBarChart';
 import AnalyticsLineChart from '../components/charts/AnalyticsLineChart';
 import { ChartEmpty, ChartError, ChartSkeleton } from '../components/charts/ChartState';
@@ -63,10 +62,12 @@ const filterLabelMap = {
     fechaFin: 'Fecha fin'
 };
 
+
 const Analisis = () => {
     const navigate = useNavigate();
     const [selectedScope, setSelectedScope] = useState(scopeOptions[0].value);
     const [detailTarget, setDetailTarget] = useState(null);
+    const [activeSection, setActiveSection] = useState('hero');
     const {
         filters: persistedFilters,
         refresh: refreshFilters,
@@ -169,6 +170,41 @@ const Analisis = () => {
         setDetailTarget(null);
     };
 
+    useEffect(() => {
+        const sections = document.querySelectorAll('[data-section]');
+        const animatedBlocks = document.querySelectorAll('.scroll-animate');
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    setActiveSection(entry.target.dataset.section);
+                }
+            });
+        }, { threshold: 0.4 });
+
+        const animationObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, { threshold: 0.25 });
+
+        sections.forEach((section) => sectionObserver.observe(section));
+        animatedBlocks.forEach((block) => animationObserver.observe(block));
+
+        return () => {
+            sectionObserver.disconnect();
+            animationObserver.disconnect();
+        };
+    }, []);
+
+    const scrollToSection = (sectionId) => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
     const renderChart = (chart) => {
         if (analyticsLoading) return <ChartSkeleton />;
         if (analyticsError) return <ChartError message={analyticsError} />;
@@ -182,14 +218,29 @@ const Analisis = () => {
 
     return (
         <div className="analisis">
-            <Navbar />
+            {/* Barra superior replica About para consistencia visual */}
+            <header className="home__nav about__nav analytics__nav" aria-label="Navegación principal de analytics">
+                <div className="home__logo">BioGeoVis</div>
+                <nav className="home__nav-links">
+                    <Link to="/home" className="home__nav-link external">Inicio</Link>
+                    <Link to="/explorer" className="home__nav-link external">Explorer</Link>
+                    <Link to="/dashboard" className="home__nav-link external">Dashboard</Link>
+                    <Link to="/about" className="home__nav-link external">Acerca de Nosotros</Link>
+                    <Link to="/login" className="home__nav-link nav-login-cta">Iniciar sesión</Link>
+                </nav>
+            </header>
             <div className="analisis-shell">
                 <main className="analisis-content" aria-label="Panel principal de analytics">
-                    <section className="analisis-hero">
+                    <section id="hero" data-section="hero" className="analisis-hero scroll-animate">
                         <div className="analisis-title">
                             <p className="analisis-eyebrow">Insights derivados de Explorer</p>
                             <h1>Analytics</h1>
                             <p>Explora cómo se comportan los resultados filtrados por diferentes dimensiones taxonómicas.</p>
+                            <ul className="hero-prompts">
+                                <li>1. Revisa los KPIs para validar que analizas la cohorte correcta.</li>
+                                <li>2. Cambia la dimensión principal y observa cómo se reorganizan las gráficas.</li>
+                                <li>3. Usa "Ver detalles" para saltar al Explorer con filtros ya aplicados.</li>
+                            </ul>
                         </div>
                         <div className="analisis-selector">
                             <label htmlFor="scope-select">Dimensión principal</label>
@@ -209,7 +260,12 @@ const Analisis = () => {
                         </div>
                     </section>
 
-                    <section className="analisis-kpis" aria-label="Indicadores principales">
+                    <section
+                        id="kpis"
+                        data-section="kpis"
+                        className="analisis-kpis scroll-animate"
+                        aria-label="Indicadores principales"
+                    >
                         {kpis.map((card) => (
                             <article className="kpi-panel" key={card.id}>
                                 <span className="kpi-icon" aria-hidden="true">
@@ -225,7 +281,11 @@ const Analisis = () => {
                         ))}
                     </section>
 
-                    <section className="analisis-layout">
+                    <section
+                        id="charts"
+                        data-section="charts"
+                        className="analisis-layout scroll-animate"
+                    >
                         <div className="analisis-charts" aria-label="Tarjetas de gráficas">
                             {chartCards.map((chart) => (
                                 <article key={chart.id} className={`chart-card ${chart.wide ? 'chart-card--wide' : ''}`}>
@@ -233,6 +293,7 @@ const Analisis = () => {
                                         <div>
                                             <h2>{chart.title}</h2>
                                             <p>{chart.subtitle}</p>
+                                            <span className="microcopy">Tip: cada gráfico se autocompleta cuando los filtros cambian; evita recargar manualmente.</span>
                                         </div>
                                         <button type="button" className="ghost-button" onClick={() => handleViewDetails(chart)}>
                                             Ver detalles
@@ -243,7 +304,12 @@ const Analisis = () => {
                             ))}
                         </div>
 
-                        <aside className="analisis-filters" aria-label="Filtros activos">
+                        <aside
+                            id="filters"
+                            data-section="filters"
+                            className="analisis-filters"
+                            aria-label="Filtros activos"
+                        >
                             <div className="analisis-filters__header">
                                 <h3>Filtros activos</h3>
                                 <button
@@ -273,6 +339,7 @@ const Analisis = () => {
                             <p className="analisis-filters__hint">
                                 Los filtros provienen del módulo Explorer. Aquí solo se visualizan resultados agregados.
                             </p>
+                            <span className="microcopy">Nota: al limpiar filtros aquí no se modifica el historial del Explorer.</span>
                         </aside>
                     </section>
                 </main>

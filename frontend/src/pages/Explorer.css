@@ -92,6 +92,11 @@
 .explorer-secondary-btn:focus-visible{
     background: rgba(255, 255, 255, 0.1);
 }
+.explorer-secondary-btn:hover{
+  background-color: #f8f8fa;
+  color: #000;
+}
+
 
 
 .explorer-filters-panel {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './Dashboard.css';
-import Navbar from '../components/Navbar';
 import Filter from '../components/Filter';
 import DashboardMap from '../components/DashboardMap';
 import SpeciesInfoCard from '../components/SpeciesInfoCard';
@@ -20,6 +20,8 @@ const SEARCH_STRATEGIES = [
     { field: 'estado', label: 'estado' }
 ];
 
+
+
 const Dashboard = () => {
     const [mapView, setMapView] = useState(DEFAULT_VIEW);
     const [markers, setMarkers] = useState([]);
@@ -31,6 +33,7 @@ const Dashboard = () => {
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchStatus, setSearchStatus] = useState({ message: '', tone: 'muted' });
     const [refreshedAt, setRefreshedAt] = useState(null);
+    const [activeSection, setActiveSection] = useState('hero');
 
     const {
         filters: persistedFilters,
@@ -161,9 +164,55 @@ const Dashboard = () => {
         return <AnalyticsLineChart data={dataset} color={color} />;
     }, [analyticsError, analyticsLoading]);
 
+    useEffect(() => {
+        const sections = document.querySelectorAll('[data-section]');
+        const animated = document.querySelectorAll('.scroll-animate');
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    setActiveSection(entry.target.dataset.section);
+                }
+            });
+        }, { threshold: 0.4 });
+
+        const animationObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, { threshold: 0.25 });
+
+        sections.forEach((section) => sectionObserver.observe(section));
+        animated.forEach((el) => animationObserver.observe(el));
+
+        return () => {
+            sectionObserver.disconnect();
+            animationObserver.disconnect();
+        };
+    }, []);
+
+    const scrollToSection = (sectionId) => {
+        const node = document.getElementById(sectionId);
+        if (node) {
+            node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
     return (
         <div className="dashboard">
-            <Navbar />
+            {/* Barra superior calcada de About para mantener jerarquía compartida */}
+            <header className="home__nav about__nav dashboard__nav" aria-label="Navegación principal del dashboard">
+                <div className="home__logo">BioGeoVis</div>
+                <nav className="home__nav-links">
+                    <Link to="/home" className="home__nav-link external">Inicio</Link>
+                    <Link to="/explorer" className="home__nav-link external">Explorer</Link>
+                    <Link to="/analisis" className="home__nav-link external">Analisis</Link>
+                    <Link to="/about" className="home__nav-link external">Acerca de Nosotros</Link>
+                    <Link to="/login" className="home__nav-link nav-login-cta">Iniciar sesión</Link>
+                </nav>
+            </header>
+
             <div className="dashboard-shell">
                 <aside className="dashboard-filter-panel" aria-label="Panel de filtros">
                     <Filter
@@ -178,11 +227,16 @@ const Dashboard = () => {
                     />
                 </aside>
                 <main className="dashboard-main" aria-live="polite">
-                    <section className="dashboard-hero">
+                    <section id="hero" data-section="hero" className="dashboard-hero scroll-animate">
                         <div>
                             <p className="dashboard-eyebrow">Visor táctico</p>
                             <h1>Dashboard de Explorer</h1>
                             <p>Revisa el estado del mapa, agrega vistas especializadas y mantén sincronizados los mismos filtros del módulo Explorer.</p>
+                            <ul className="hero-prompts">
+                                <li>1. Verifica los indicadores antes de activar nuevas capas.</li>
+                                <li>2. Usa el buscador para resaltar marcadores clave sin perder el contexto general.</li>
+                                <li>3. Refresca cuando conectes nuevos filtros para asegurar datos vivos.</li>
+                            </ul>
                         </div>
                         <div className="dashboard-hero__actions">
                             <button type="button" className="ghost-button" onClick={() => loadMarkers(persistedFilters || {})}>
@@ -194,16 +248,9 @@ const Dashboard = () => {
                         </div>
                     </section>
 
-                    <section className="dashboard-kpis" aria-label="Indicadores clave">
-                        {kpis.map((kpi) => (
-                            <article key={kpi.id} className="dashboard-kpi-card">
-                                <p className="kpi-label">{kpi.label}</p>
-                                <p className="kpi-value">{kpi.value}</p>
-                            </article>
-                        ))}
-                    </section>
+                    
 
-                    <section className="dashboard-map-section">
+                    <section id="map" data-section="map" className="dashboard-map-section scroll-animate">
                         <DashboardMap
                             viewMode={mapView}
                             markers={markers}
@@ -217,16 +264,23 @@ const Dashboard = () => {
                         {selectedMarker && (
                             <div className="dashboard-map-section__card">
                                 <SpeciesInfoCard species={selectedMarker} onClose={() => setSelectedMarker(null)} />
+                                <span className="microcopy">Tip: arrastra la tarjeta para revisar otros puntos sin cerrar el panel.</span>
                             </div>
                         )}
                     </section>
 
-                    <section className="dashboard-charts" aria-label="Gráficas analíticas">
+                    <section
+                        id="charts"
+                        data-section="charts"
+                        className="dashboard-charts scroll-animate"
+                        aria-label="Gráficas analíticas"
+                    >
                         <article className="dashboard-chart">
                             <div className="dashboard-chart__header">
                                 <div>
                                     <h3>Top taxonómico</h3>
                                     <p>Ranking derivado de los filtros activos</p>
+                                    <span className="microcopy">Se actualiza cuando cambias filtros o vista.</span>
                                 </div>
                             </div>
                             {renderBarChart(analyticsData?.dimensionRanking, '#739EC9')}
@@ -236,6 +290,7 @@ const Dashboard = () => {
                                 <div>
                                     <h3>Distribución temporal</h3>
                                     <p>Histórico de registros agregados</p>
+                                    <span className="microcopy">Ideal para validar si debes activar alertas de anomalías.</span>
                                 </div>
                             </div>
                             {renderLineChart(analyticsData?.temporalSeries, '#FFE8DB')}
@@ -245,11 +300,26 @@ const Dashboard = () => {
                                 <div>
                                     <h3>Fauna por categoría</h3>
                                     <p>Clasificación de la muestra actual</p>
+                                    <span className="microcopy">Observa saltos bruscos para abrir Analytics y profundizar.</span>
                                 </div>
                             </div>
                             {renderBarChart(analyticsData?.faunaBreakdown, '#51cf66')}
                         </article>
                     </section>
+                    <section
+                        id="kpis"
+                        data-section="kpis"
+                        className="dashboard-kpis scroll-animate"
+                        aria-label="Indicadores clave"
+                    >
+                        {kpis.map((kpi) => (
+                            <article key={kpi.id} className="dashboard-kpi-card">
+                                <p className="kpi-label">{kpi.label}</p>
+                                <p className="kpi-value">{kpi.value}</p>
+                            </article>
+                        ))}
+                    </section>
+                    
                 </main>
             </div>
         </div>

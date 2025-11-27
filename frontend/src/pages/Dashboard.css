@@ -1,9 +1,56 @@
 .dashboard {
     min-height: 100vh;
     color: var(--color-text-primary);
-    background: linear-gradient(120deg, #040b14 0%, #071426 45%, #1c0f1e 100%);
+    background: radial-gradient(circle at top, rgba(20, 34, 64, 0.7), #020409 60%);
     position: relative;
     overflow: hidden;
+    font-family: var(--font-body);
+    scroll-behavior: smooth;
+}
+
+.home__nav.about__nav.dashboard__nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.85rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: linear-gradient(90deg, rgba(8, 20, 40, 0.9), rgba(8, 20, 40, 0.4));
+    backdrop-filter: blur(10px);
+    z-index: 5;
+}
+
+.home__nav.about__nav.dashboard__nav .home__logo {
+    font-weight: 700;
+    font-size:30px;
+    letter-spacing: 0.04em;
+    color: #F5F8FF;
+}
+
+.home__nav.about__nav.dashboard__nav .home__nav-links {
+    display: flex;
+    gap: 0.4rem;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.home__nav.about__nav.dashboard__nav .home__nav-link {
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 20px;
+    color: #dbe5ff;
+    text-decoration: none;
+    background: transparent;
+}
+
+.home__nav.about__nav.dashboard__nav .home__nav-link.is-active,
+.home__nav.about__nav.dashboard__nav .home__nav-link:hover,
+.home__nav.about__nav.dashboard__nav .home__nav-link:focus-visible {
+    background: rgba(94, 166, 255, 0.18);
+    color: #fff;
 }
 
 .dashboard::before,
@@ -32,6 +79,7 @@
 
 .dashboard-shell {
     display: grid;
+    margin-top:70px ;
     grid-template-columns: 360px minmax(0, 1fr);
     gap: clamp(1rem, 2vw, 1.75rem);
     padding: clamp(1.5rem, 3vw, 2.5rem);
@@ -41,7 +89,7 @@
 
 .dashboard-filter-panel {
     position: sticky;
-    top: clamp(1.5rem, 3vw, 2.5rem);
+    top: clamp(1.2rem, 3vw, 2.5rem);
     align-self: flex-start;
     z-index: 2;
 }
@@ -83,6 +131,17 @@
     align-items: flex-start;
 }
 
+.hero-prompts {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    color: rgba(255, 232, 219, 0.78);
+    font-size: 0.92rem;
+}
+
 .ghost-button {
     border: 1px solid rgba(255, 255, 255, 0.25);
     background: rgba(255, 255, 255, 0.05);
@@ -108,7 +167,7 @@
 
 .dashboard-kpis {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 1rem;
 }
 
@@ -121,7 +180,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    min-height: 120px;
+    min-height: 80px;
 }
 
 .kpi-label {
@@ -224,6 +283,13 @@
     color: rgba(255, 232, 219, 0.7);
 }
 
+.microcopy {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: rgba(255, 232, 219, 0.7);
+}
+
 .dashboard-map.neutral-tone {
     backdrop-filter: hue-rotate(0deg);
 }
@@ -238,6 +304,17 @@
 
 .dashboard-map .leaflet-container {
     height: 100%;
+}
+
+.scroll-animate {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.scroll-animate.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 @media (max-width: 1100px) {

@@ -54,15 +54,16 @@ function AboutPage() {
     return (
         <div className="about-page">
             {/* Barra superior replica la jerarquía de Home para mantener memoria espacial. */}
-            <header className="mapview__nav" aria-label="Navegación de mapa">
+        <header className="mapview__nav" aria-label="Navegación de mapa">
         <div className="mapview__logo">BioGeoVis</div>
         <nav className="mapview__nav-links">
           <Link to="/" className="mapview__nav-link">Inicio</Link>
           <Link to="/explorer" className="mapview__nav-link">Explorador</Link>
-          <Link to="/dashboard" className="mapview__nav-link">Dashboard</Link>
-          <Link to="/about" className="mapview__nav-link">
-            Acerca de Nosotros
-          </Link>
+                    <Link to="/dashboard" className="mapview__nav-link">Dashboard</Link>
+                    <Link to="/about" className="mapview__nav-link">
+                        Acerca de Nosotros
+                    </Link>
+                    <Link to="/login" className="mapview__nav-link nav-login-cta">Iniciar sesión</Link>
         </nav>
       </header>
 

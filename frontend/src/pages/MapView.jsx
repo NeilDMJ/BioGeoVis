@@ -33,8 +33,8 @@ const TILE_SWATCHES = {
   osm: 'linear-gradient(135deg, #ebf7e3, #c2dd9b)',
   opentopo: 'linear-gradient(135deg, #ffe9c7, #f2c57c)',
   wikimedia: 'linear-gradient(135deg, #fef2ff, #cec0f0)',
-  esri: 'linear-gradient(135deg, #082032, #1f6f8b)',
-  cartoDark: 'linear-gradient(135deg, #0f172a, #2b3a67)'
+  esri: 'linear-gradient(135deg, #1e66a1ff, #7598a5ff)',
+  cartoDark: 'linear-gradient(135deg, #60b01fff, #dfe1e9ff)'
 };
 
 function MapView() {
@@ -233,6 +233,7 @@ function MapView() {
           <Link to="/about" className="mapview__nav-link">
             Acerca de Nosotros
           </Link>
+          <Link to="/login" className="mapview__nav-link nav-login-cta">Iniciar sesión</Link>
         </nav>
         <div className="mapview__nav-actions">
           <Button variant="outline-light" size="sm" onClick={() => navigate('/explorer')}>

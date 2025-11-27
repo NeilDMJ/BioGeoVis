@@ -1,7 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Button, Form, Container, Row, Col, Card } from 'react-bootstrap';
+import { Button, Form } from 'react-bootstrap';
 import './Login.css';
+
+const NAV_LINKS = [
+    { id: 'home', label: 'Inicio', to: '/' },
+    { id: 'explorer', label: 'Explorer', to: '/explorer' },
+    { id: 'dashboard', label: 'Dashboard', to: '/dashboard' },
+    { id: 'analisis', label: 'Analytics', to: '/analisis' }
+];
 
 const Login = () => {
     const navigate = useNavigate();
@@ -20,7 +27,25 @@ const Login = () => {
         setError(''); // Limpiar error al escribir
     };
 
-    const handleSubmit = async (e) => { 
+    const [activeSection, setActiveSection] = useState('hero');
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    setActiveSection(entry.target.dataset.section || 'hero');
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const animatedBlocks = document.querySelectorAll('.scroll-animate');
+        animatedBlocks.forEach((block) => observer.observe(block));
+
+        return () => observer.disconnect();
+    }, []);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
@@ -55,86 +80,136 @@ const Login = () => {
         }
     };
 
+    const scrollToSection = (sectionId) => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
     return (
         <div className="login-page">
-            <Container>
-                <Row className="justify-content-center align-items-center min-vh-100">
-                    <Col md={6} lg={5}>
-                        <Card className="login-card">
-                            <Card.Body className="p-5">
-                                <div className="text-center mb-4">
-                                    <h1 className="login-logo">BioGeoVis</h1>
-                                    <p className="login-subtitle">Plataforma de Análisis de Biodiversidad</p>
-                                </div>
+            {/* Barra superior replicada de About para consistencia */}
+            <header className="home__nav about__nav login__nav" aria-label="Navegación principal">
+                <div className="home__logo">BioGeoVis</div>
+                <nav className="home__nav-links">
+                    {NAV_LINKS.map((link) => (
+                        <Link key={link.id} to={link.to} className="home__nav-link">
+                            {link.label}
+                        </Link>
+                    ))}
+                </nav>
+            </header>
 
-                                {error && (
-                                    <div className="alert alert-danger" role="alert">
-                                        {error}
-                                    </div>
-                                )}
+            <main className="login-shell">
+                
 
-                                <Form onSubmit={handleSubmit}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Correo Electrónico</Form.Label>
-                                        <Form.Control
-                                            type="email"
-                                            name="email"
-                                            placeholder="tu@email.com"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            disabled={loading}
-                                        />
-                                    </Form.Group>
+                <section id="form" data-section="form" className="login-grid">
+                    <article className="login-card scroll-animate" aria-label="Formulario de inicio de sesión">
+                        <header className="login-card__header">
+                            <h2>Ingresa a BioGeoVis</h2>
+                            <p>Todos los campos son obligatorios.</p>
+                        </header>
 
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Contraseña</Form.Label>
-                                        <Form.Control
-                                            type="password"
-                                            name="password"
-                                            placeholder="••••••••"
-                                            value={formData.password}
-                                            onChange={handleChange}
-                                            disabled={loading}
-                                        />
-                                    </Form.Group>
+                        {error && (
+                            <div className="alert alert-danger" role="alert">
+                                {error}
+                            </div>
+                        )}
 
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <Form.Check
-                                            type="checkbox"
-                                            label="Recordarme"
-                                        />
-                                        <Link to="/forgot-password" className="forgot-password-link">
-                                            ¿Olvidaste tu contraseña?
-                                        </Link>
-                                    </div>
+                        <Form onSubmit={handleSubmit}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Correo electrónico</Form.Label>
+                                <Form.Control
+                                    type="email"
+                                    name="email"
+                                    placeholder="tu@email.com"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    disabled={loading}
+                                />
+                                <span className="microcopy">Usa el correo qeu tienes registrado.</span>
+                            </Form.Group>
 
-                                    <Button
-                                        variant="primary"
-                                        type="submit"
-                                        className="w-100 mb-3"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-                                    </Button>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Contraseña</Form.Label>
+                                <Form.Control
+                                    type="password"
+                                    name="password"
+                                    placeholder="••••••••"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    disabled={loading}
+                                />
+                                <span className="microcopy">Debe tener al menos 8 caracteres y un símbolo.</span>
+                            </Form.Group>
 
-                                    <div className="text-center">
-                                        <span className="text-muted">¿No tienes cuenta? </span>
-                                        <Link to="/register" className="register-link">
-                                            Regístrate aquí
-                                        </Link>
-                                    </div>
-                                </Form>
-                            </Card.Body>
-                        </Card>
+                            <div className="login-card__actions">
+                                <Form.Check type="checkbox" label="Recordarme" disabled={loading} />
+                                <Link to="/forgot-password" className="forgot-password-link">
+                                    ¿Olvidaste tu contraseña?
+                                </Link>
+                            </div>
 
-                        <div className="text-c enter mt-3">
-                            <Link to="/home" className="back-to-home">
-                                ← Volver al inicio
-                            </Link>
-                        </div>
-                    </Col>
-                </Row>
-            </Container>
+                            <Button
+                                variant="primary"
+                                type="submit"
+                                className="login-submit"
+                                disabled={loading}
+                            >
+                                {loading ? 'Iniciando sesión…' : 'Iniciar sesión' }
+                            </Button>
+
+                            <div className="login-card__footer">
+                                <span>¿No tienes cuenta?</span>
+                                <Link to="/register" className="register-link">
+                                    Solicita acceso
+                                </Link>
+                            </div>
+                        </Form>
+                    </article>
+
+                    <aside id="support" data-section="support" className="login-support scroll-animate" aria-label="Recordatorios de seguridad">
+                        <h3>Soporte y seguridad</h3>
+                        <p>Solo personal autorizado puede iniciar sesión. Si detectas actividad sospechosa:</p>
+                        <ul>
+                            <li>Contacta al equipo en <a href="mailto:security@biogeovis.com">security@biogeovis.com</a>.</li>
+                            <li>Actualiza tu contraseña desde un dispositivo confiable.</li>
+                            <li>Consulta el estado del servicio en el Dashboard si notas latencia.</li>
+                        </ul>
+                        <Link to="/" className="back-to-home">← Volver al inicio</Link>
+                    </aside>
+                </section>
+
+                <section
+                    id="register"
+                    data-section="register"
+                    className="login-register scroll-animate"
+                    aria-label="Área para solicitudes de registro"
+                >
+                    <div className="login-register__content">
+                        <p className="eyebrow">¿Necesitas acceso?</p>
+                        <h3>Solicita tu cuenta institucional.</h3>
+                        <p>
+                            Completa el formulario de registro para que el equipo valide tu pertenencia a la red de investigación.
+                            Te pediremos correo institucional, área de estudio y objetivo de uso para habilitar tu perfil.
+                        </p>
+                        <ol>
+                            <li>Envía la solicitud con tus datos académicos.</li>
+                            <li>Confirma el correo de verificación que recibirás en minutos.</li>
+                            <li>Activa tu cuenta y vuelve aquí para iniciar sesión.</li>
+                        </ol>
+                    </div>
+                    <div className="login-register__cta">
+                        <Button as={Link} to="/register" size="lg" variant="primary">
+                            Ir a registro
+                        </Button>
+                        <p>
+                            ¿Tienes dudas? Escribe a <a href="mailto:onboarding@biogeovis.com">onboarding@biogeovis.com</a> y te guiamos paso a paso.
+                        </p>
+                    </div>
+                </section>
+            </main>
         </div>
     );
 };
