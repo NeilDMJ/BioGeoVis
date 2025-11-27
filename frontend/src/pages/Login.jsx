@@ -205,7 +205,7 @@ const Login = () => {
                             Ir a registro
                         </Button>
                         <p>
-                            ¿Tienes dudas? Escribe a <a href="mailto:onboarding@biogeovis.com">onboarding@biogeovis.com</a> y te guiamos paso a paso.
+                            ¿Tienes dudas? Escribe a <a href="mailto:biogevis@gmail.com">onboarding@biogeovis.com</a> y te guiamos paso a paso.
                         </p>
                     </div>
                 </section>
