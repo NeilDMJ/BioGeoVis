@@ -173,7 +173,7 @@ const Login = () => {
                         <h3>Soporte y seguridad</h3>
                         <p>Solo personal autorizado puede iniciar sesión. Si detectas actividad sospechosa:</p>
                         <ul>
-                            <li>Contacta al equipo en <a href="mailto:biogevis@gmail.com">security@biogeovis.com</a>.</li>
+                            <li>Contacta al equipo en <a href="mailto:biogevis@gmail.com">biogevis@gmail.com</a>.</li>
                             <li>Actualiza tu contraseña desde un dispositivo confiable.</li>
                             <li>Consulta el estado del servicio en el Dashboard si notas latencia.</li>
                         </ul>
@@ -205,7 +205,7 @@ const Login = () => {
                             Ir a registro
                         </Button>
                         <p>
-                            ¿Tienes dudas? Escribe a <a href="mailto:biogevis@gmail.com">onboarding@biogeovis.com</a> y te guiamos paso a paso.
+                            ¿Tienes dudas? Escribe a <a href="mailto:biogevis@gmail.com">biogevis@gmail.com</a> y te guiamos paso a paso.
                         </p>
                     </div>
                 </section>
