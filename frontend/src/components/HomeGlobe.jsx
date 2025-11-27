@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import Globe from 'globe.gl';
 
-function HomeGlobe() {
+function HomeGlobe({ className }) {
   const globeEl = useRef();
+  const animationRef = useRef();
+  const globeRef = useRef();
 
   useEffect(() => {
     // Inicializar el globo
@@ -14,13 +16,34 @@ function HomeGlobe() {
       .height(globeEl.current.clientHeight)
       .showAtmosphere(true);
 
-    // Configurar rotación automática para la página de inicio
+    globeRef.current = globe;
+
+    // Configurar rotación automática optimizada
     globe.controls().autoRotate = true;
-    globe.controls().autoRotateSpeed = 0.8;
+    globe.controls().autoRotateSpeed = 0.5;
     globe.controls().enableRotate = false;
     globe.controls().enableZoom = false;
     globe.controls().enablePan = false;
+    globe.controls().enableDamping = true;
+    globe.controls().dampingFactor = 0.08;
     globe.pointOfView({ altitude: 1.5 }, 0);
+
+    const smoothRotate = () => {
+      animationRef.current = requestAnimationFrame(smoothRotate);
+      globe.controls().update?.();
+    };
+    smoothRotate();
+
+    const handleVisibilityChange = () => {
+      const controls = globe.controls();
+      if (document.hidden) {
+        controls.autoRotate = false;
+      } else {
+        controls.autoRotate = true;
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     // Ajustar tamaño cuando cambia el tamaño de la ventana
     const handleResize = () => {
       if (globeEl.current) {
@@ -34,6 +57,8 @@ function HomeGlobe() {
 
     // Cleanup
     return () => {
+      cancelAnimationFrame(animationRef.current);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('resize', handleResize);
       try {
         globe.controls().dispose();
@@ -45,7 +70,8 @@ function HomeGlobe() {
 
   return (
     <div 
-      ref={globeEl} 
+      ref={globeEl}
+      className={className}
       style={{ 
         width: '100%', 
         height: '100%',
@@ -54,5 +80,9 @@ function HomeGlobe() {
     />
   );
 }
+
+HomeGlobe.defaultProps = {
+  className: ''
+};
 
 export default HomeGlobe;

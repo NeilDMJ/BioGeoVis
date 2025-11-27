@@ -6,7 +6,7 @@
   border: 1px solid rgba(86, 130, 177, 0.3);
   overflow: hidden;
   color: #111827;
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
   position: relative;
 }
 

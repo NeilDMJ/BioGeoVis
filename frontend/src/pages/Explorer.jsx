@@ -4,6 +4,7 @@ import { Button } from 'react-bootstrap';
 import Globe from 'globe.gl';
 import Filter from '../components/Filter';
 import { fetchAvistamientosAdvanced, persistAdvancedFilters } from '../services/api';
+import './Explorer.css';
 
 function Explorer() {
   const navigate = useNavigate();
@@ -89,94 +90,55 @@ function Explorer() {
 
   return (
     <>
-      <div
-        ref={globeEl}
-        style={{
-          width: '100vw',
-          height: '100vh',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          margin: 0,
-          padding: 0,
-          overflow: 'hidden'
-        }}
-      />
+      <div ref={globeEl} className="explorer-globe-canvas" />
 
-      {/* Overlay info existente */}
-      <div style={{
-        position: 'absolute',
-        top: 12,
-        right: 360, // deja espacio al panel
-        zIndex: 1000,
-        background: '#5682B1',
-        padding: 12,
-        borderRadius: 8,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-        maxWidth: '300px'
-      }}>
-        <div style={{ fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
+      <header className="explorer-command-bar">
+        <div className="explorer-brand">
           Explorador de Avistamientos
         </div>
-        <div style={{ fontSize: 12, marginBottom: 6, color: '#FFE8DB' }}>
-          Haz click en cualquier parte del globo para ver el mapa detallado.
-        </div>
-        {loading && (
-          <div style={{ fontSize: 12, color: '#fff' }}>Cargando avistamientos…</div>
-        )}
-        {error && (
-          <div style={{ fontSize: 12, color: '#ffdddd' }}>Error: {error}</div>
-        )}
-        <div style={{
-          fontSize: 11,
-          color: '#9ca3af',
-          marginTop: 8,
-          fontStyle: 'italic'
-        }}>
-          Usa el mouse para rotar y hacer zoom
-        </div>
-      </div>
 
-      {/* Botón regreso */}
-      <div style={{
-        position: 'absolute',
-        top: 12,
-        left: 12,
-        zIndex: 1000,
-        borderRadius: 8,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-      }}>
-        <Button
-          onClick={() => navigate('/')}
-          variant="primary"
-          size="sm"
-        >
-          Inicio
-        </Button>
-        <Button 
-          onClick={() => navigate('/Dashboard')}
-          varian ="primary"
-          size ="sm"
-          style={
-            {
-              marginLeft : 20
-            }
-          }
-        >
-          Graficas
-        </Button>
-      </div>
+        <div className="explorer-hints">
+          <p>1. Gira y acerca el globo para ubicarte.</p>
+          <p>2. Haz click en una región para abrir el mapa detallado.</p>
+        </div>
 
-      {/* Panel de filtros lado derecho */}
-      <div className="explorer-filters-wrapper">
-        <Filter
-          onChangeView={(v) => console.log('vista:', v)}
-          onSearch={(q) => console.log('buscar:', q)}
-          onApplyCoordinates={(c) => console.log('coords:', c)}
-          onApplyAdvancedFilters={handleApplyAdvancedFilters}
-          showViewSection={false}
-        />
-      </div>
+        <div className="explorer-actions">
+          {loading && <span className="explorer-status">Consultando datos…</span>}
+          {error && <span className="explorer-status error">Error: {error}</span>}
+          <Button
+            onClick={() => navigate('/')}
+            variant="primary"
+            size="sm"
+            className="explorer-primary-btn"
+          >
+            Volver al inicio
+          </Button>
+          <Button
+            onClick={() => navigate('/map')}
+            variant="outline-light"
+            size="sm"
+            className="explorer-secondary-btn"
+          >
+            Ir al mapa
+          </Button>
+        </div>
+      </header>
+
+      <aside className="explorer-filters-panel">
+        <div className="explorer-panel-head">
+          <h2>Filtrar avistamientos</h2>
+          <p>Aplica búsquedas o coordenadas; mantendremos tus resultados al visitar el mapa.</p>
+        </div>
+        <div className="explorer-panel-body">
+          <Filter
+            onChangeView={(v) => console.log('vista:', v)}
+            onSearch={(q) => console.log('buscar:', q)}
+            onApplyCoordinates={(c) => console.log('coords:', c)}
+            onApplyAdvancedFilters={handleApplyAdvancedFilters}
+            showViewSection={false}
+          />
+        </div>
+      </aside>
     </>
   );
 }

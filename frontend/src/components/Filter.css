@@ -13,19 +13,20 @@
 * { box-sizing: border-box; }
 
 .filter-panel {
-  width: 330px;
-  max-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
-  padding: 12px;
-  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  width: 100%;
+  max-height: none;
+  height: auto;
+  overflow: visible;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(13, 43, 69, 0.95), rgba(23, 96, 135, 0.92));
   color: var(--text);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  border-radius: 14px 0 0 14px;
-  box-shadow: -4px 0 12px -4px rgba(0,0,0,0.25);
-  backdrop-filter: blur(4px);
+  gap: 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
 }
 
 .filter-panel::-webkit-scrollbar {
@@ -41,16 +42,17 @@
 
 .panel-header {
   flex: 0 0 auto;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.18);
   color: #eaf6ff;
   border: 1px solid rgba(255,255,255,0.25);
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
   font-weight: 700;
   display: flex;
   justify-content: space-between;
   align-items: center;
   user-select: none;
+  font-size: 0.95rem;
 }
 
 .panel-header.clickable { cursor: pointer; }
@@ -58,20 +60,20 @@
 .panel-body {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  overflow: visible;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-bottom: 12px;
+  gap: 16px;
+  padding-bottom: 8px;
 }
 
 .card {
   flex: 0 0 auto;
   background: linear-gradient(180deg, var(--card), var(--card-2));
-  border-radius: 16px;
-  padding: 14px;
+  border-radius: 20px;
+  padding: 18px;
   border: 1px solid #a6c9e6;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 18px rgba(6, 15, 32, 0.18);
 }
 
 .card.advanced {
@@ -90,7 +92,9 @@
   justify-content: space-between;
   align-items: center;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  color: #082235;
 }
 
 .icon-btn {
@@ -137,7 +141,7 @@
 }
 
 .field label {
-  font-size: 12px;
+  font-size: 0.9rem;
   color: var(--muted);
   font-weight: 700;
 }
@@ -146,13 +150,13 @@
 .search input,
 .select-control select {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
   border: 1px solid #a6c9e6;
   outline: none;
   background: #f4faff;
   color: var(--text);
-  font-size: 13px;
+  font-size: 0.95rem;
 }
 
 .select-control {
@@ -180,7 +184,7 @@
 .search {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   position: relative;
 }
@@ -192,11 +196,11 @@
   right: 0;
   background: #ffffff;
   border: 1px solid #a6c9e6;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-  max-height: 220px;
+  border-radius: 16px;
+  box-shadow: 0 14px 32px rgba(5, 9, 20, 0.25);
+  max-height: 260px;
   overflow-y: auto;
-  padding: 4px 0;
+  padding: 6px 0;
   z-index: 20;
 }
 
@@ -207,8 +211,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
   cursor: pointer;
   color: var(--text);
 }
@@ -237,13 +241,14 @@
 }
 
 .search-btn {
-  min-width: 46px;
-  padding: 9px 12px;
-  border-radius: 10px;
+  min-width: 56px;
+  padding: 11px 16px;
+  border-radius: 12px;
   border: 1px solid #a6c9e6;
   background: #0d2b45;
   color: #f4faff;
-  font-size: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
   transition: background .15s ease, transform .1s ease;
 }
 
@@ -259,7 +264,7 @@
 
 .search-feedback {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: 0.85rem;
   color: var(--muted);
 }
 
@@ -269,13 +274,14 @@
 
 .primary-btn {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
   border: 1px solid #b7e4ff;
   background: #dff7ff;
   color: #064e66;
   font-weight: 800;
   cursor: pointer;
+  font-size: 1rem;
   transition: background .15s;
 }
 
