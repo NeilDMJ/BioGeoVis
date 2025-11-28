@@ -27,7 +27,7 @@
 
 .mapview__logo {
   font-weight: 700;
-  font-size:30px;
+  font-size: 30px;
   letter-spacing: 0.08em;
 }
 
@@ -59,31 +59,33 @@
   display: flex;
   gap: 2rem;
 }
-.mapview__nav-actions a{
-    font-size: 18px;
-    background: linear-gradient(135deg, #5ea6ff, #2a6deb);
-    border-radius: 999px !important;
-    padding: 0.95rem 1.8rem;
-    font-weight: 600;
-    border: none;
-}
-.mapview__nav-actions a:hover
-.mapview__nav-actions a:focus-visible{
-     background: linear-gradient(135deg, #5ea6ff, #2a6deb);
+
+.mapview__nav-actions a {
+  font-size: 18px;
+  background: linear-gradient(135deg, #5ea6ff, #2a6deb);
+  border-radius: 999px !important;
+  padding: 0.95rem 1.8rem;
+  font-weight: 600;
+  border: none;
 }
 
-.mapview__nav-actions button{
-    font-size: 18px;
-    background:transparent;
-    border-radius: 999px !important;
-    padding: 0.95rem 1.8rem;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+.mapview__nav-actions a:hover .mapview__nav-actions a:focus-visible {
+  background: linear-gradient(135deg, #5ea6ff, #2a6deb);
 }
-.mapview__nav-actions button:hover
-.mapview__nav-actions button:focus-visible{
-     background: rgba(255, 255, 255, 0.1);
+
+.mapview__nav-actions button {
+  font-size: 18px;
+  background: transparent;
+  border-radius: 999px !important;
+  padding: 0.95rem 1.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
+
+.mapview__nav-actions button:hover .mapview__nav-actions button:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .mapview__panels {
   position: fixed;
   top: 6rem;
@@ -112,7 +114,7 @@
   background: rgba(10, 24, 46, 0.78);
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 20px 60px rgba(2, 8, 20, 0.45);
 }
 
@@ -309,6 +311,12 @@
 
 .fade-slide-in.delay-1.is-visible {
   transition-delay: 0.12s;
+}
+
+.mapview__panel-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 @media (max-width: 900px) {

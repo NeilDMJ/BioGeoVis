@@ -18,6 +18,8 @@ import {
   darkenHex
 } from '../utils/mapConfig';
 import './MapView.css';
+import upIcon from '../assets/up.svg';
+import downIcon from '../assets/down.svg';
 
 const TILE_DESCRIPTIONS = {
   carto: 'Base equilibrada ideal para análisis generales.',
@@ -41,6 +43,8 @@ function MapView() {
   const location = useLocation();
   const navigate = useNavigate();
   const [providerKey, setProviderKey] = useState('carto');
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(true);
   const provider = TILE_PROVIDERS[providerKey];
 
   const resolveInitialMarkers = () => {
@@ -147,7 +151,7 @@ function MapView() {
   useEffect(() => {
     try {
       sessionStorage.setItem('biogeovis:mapMarkers', JSON.stringify(markers));
-    } catch {}
+    } catch { }
   }, [markers]);
 
   useEffect(() => {
@@ -177,7 +181,7 @@ function MapView() {
       <MapContainer
         center={position}
         zoom={hasMarkers ? 3 : 6}
-        minZoom={1.5}      
+        minZoom={1.5}
         zoomSnap={0}      // permitir zoom fraccional 
         className="mapview__canvas"
         maxBounds={MAP_MAX_BOUNDS}
@@ -205,7 +209,7 @@ function MapView() {
           L.markerClusterGroup ? (
             <MarkerClusters points={markers} onMarkerClick={handleMarkerSelect} />
           ) : (
-            markers.map((m,i) => (
+            markers.map((m, i) => (
               <Marker
                 key={i}
                 position={[m.lat, m.lng]}
@@ -248,51 +252,73 @@ function MapView() {
       <div className="mapview__panels">
         <section className="mapview__panel fade-slide-in">
           <div className="mapview__panel-head">
-            <p className="eyebrow">Estilo de mapa</p>
-            <h2>Elige cómo contar la historia de tus avistamientos.</h2>
-            <p className="panel-lead">Cada vista está optimizada para un tipo de análisis. Selecciona una tarjeta para aplicarla de inmediato.</p>
-          </div>
-          <div className="tile-gallery" role="list">
-            {Object.entries(TILE_PROVIDERS).map(([key, p]) => (
-              <button
-                key={key}
-                type="button"
-                className={`tile-card ${providerKey === key ? 'is-active' : ''}`}
-                onClick={() => setProviderKey(key)}
-                style={{ background: TILE_SWATCHES[key] || TILE_SWATCHES.carto }}
-                aria-pressed={providerKey === key}
-                aria-label={`Cambiar a ${p.name}`}
-              >
-                <span className="tile-card__name">{p.name}</span>
-                <span className="tile-card__desc">{TILE_DESCRIPTIONS[key] || 'Vista cartográfica'}</span>
+            <div className="mapview__panel-toggle-row">
+              <p className="eyebrow" style={{ margin: 0 }}>Estilo de mapa</p>
+              <button onClick={() => setIsPanelOpen(!isPanelOpen)} type="button" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                <img src={isPanelOpen ? upIcon : downIcon} alt={isPanelOpen ? "Contraer" : "Desplegar"} />
               </button>
-            ))}
+            </div>
+            {isPanelOpen && (
+              <>
+                <h2>Elige cómo contar la historia de tus avistamientos.</h2>
+                <p className="panel-lead">Cada vista está optimizada para un tipo de análisis. Selecciona una tarjeta para aplicarla de inmediato.</p>
+              </>
+            )}
           </div>
-          <div className="panel-hint">Tip: alterna entre vistas de mapas segun tu elección.</div>
+          {isPanelOpen && (
+            <>
+              <div className="tile-gallery" role="list">
+                {Object.entries(TILE_PROVIDERS).map(([key, p]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`tile-card ${providerKey === key ? 'is-active' : ''}`}
+                    onClick={() => setProviderKey(key)}
+                    style={{ background: TILE_SWATCHES[key] || TILE_SWATCHES.carto }}
+                    aria-pressed={providerKey === key}
+                    aria-label={`Cambiar a ${p.name}`}
+                  >
+                    <span className="tile-card__name">{p.name}</span>
+                    <span className="tile-card__desc">{TILE_DESCRIPTIONS[key] || 'Vista cartográfica'}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="panel-hint">Tip: alterna entre vistas de mapas segun tu elección.</div>
+            </>
+          )}
         </section>
 
         <section className="mapview__panel fade-slide-in delay-1">
           <div className="mapview__panel-head">
-            <p className="eyebrow">Guía contextual</p>
-            <h2>No pierdas de vista los pasos clave.</h2>
+            <div className="mapview__panel-toggle-row">
+              <p className="eyebrow" style={{ margin: 0 }}>Guía contextual</p>
+              <button onClick={() => setIsGuideOpen(!isGuideOpen)} type="button" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                <img src={isGuideOpen ? upIcon : downIcon} alt={isGuideOpen ? "Contraer" : "Desplegar"} />
+              </button>
+            </div>
+            {isGuideOpen && <h2>No pierdas de vista los pasos clave.</h2>}
           </div>
-          <ol className="mapview__steps" aria-label="Instrucciones de uso">
-            <li>Acerca o aleja con el trackpad o los botones.</li>
-            <li>Haz click sobre un marcador para ver detalles de la especie.</li>
-          </ol>
-          <div className="status-grid">
-            <article className="status-card">
-              <h3>Ubicación seleccionada</h3>
-              <p>Latitud <strong>{clickedLat.toFixed(4)}</strong></p>
-              <p>Longitud <strong>{clickedLng.toFixed(4)}</strong></p>
-              <span>Sincronizada desde el globo 3D.</span>
-            </article>
-            <article className="status-card">
-              <h3>Marcadores cargados</h3>
-              <p className="status-count">{markers.length}</p>
-              <span>{hasMarkers ? 'Filtra nuevamente en Explorer para actualizar.' : 'Aún no hay resultados para esta vista.'}</span>
-            </article>
-          </div>
+          {isGuideOpen && (
+            <>
+              <ol className="mapview__steps" aria-label="Instrucciones de uso">
+                <li>Acerca o aleja con el trackpad o los botones.</li>
+                <li>Haz click sobre un marcador para ver detalles de la especie.</li>
+              </ol>
+              <div className="status-grid">
+                <article className="status-card">
+                  <h3>Ubicación seleccionada</h3>
+                  <p>Latitud <strong>{clickedLat.toFixed(4)}</strong></p>
+                  <p>Longitud <strong>{clickedLng.toFixed(4)}</strong></p>
+                  <span>Sincronizada desde el globo 3D.</span>
+                </article>
+                <article className="status-card">
+                  <h3>Marcadores cargados</h3>
+                  <p className="status-count">{markers.length}</p>
+                  <span>{hasMarkers ? 'Filtra nuevamente en Explorer para actualizar.' : 'Aún no hay resultados para esta vista.'}</span>
+                </article>
+              </div>
+            </>
+          )}
         </section>
 
       </div>
