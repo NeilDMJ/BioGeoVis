@@ -7,7 +7,7 @@ const NAV_LINKS = [
     { id: 'home', label: 'Inicio', to: '/' },
     { id: 'explorer', label: 'Explorer', to: '/explorer' },
     { id: 'dashboard', label: 'Dashboard', to: '/dashboard' },
-    { id: 'analisis', label: 'Analytics', to: '/analisis' }
+    { id: 'analisis', label: 'Analisis', to: '/analisis' }
 ];
 
 const Login = () => {
