@@ -16,18 +16,13 @@ export const TILE_PROVIDERS = {
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
   },
-  wikimedia: {
-    name: 'Mapa Cartografico',
-    url: 'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
-    attribution: 'Wikimedia maps'
-  },
   esri: {
     name: 'Mapa satelital',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attribution: 'Tiles &copy; Esri'
   },
   cartoDark: {
-    name: 'Mapa termico',
+    name: 'Mapa monocromatico',
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
   }

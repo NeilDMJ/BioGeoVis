@@ -270,10 +270,11 @@ export async function fetchAvistamientosAdvanced(filters) {
       throw e;
     }
   } else {
+    // Fallback: si no hay filtros activos, mostrar por defecto reino Animalia
     try {
-      data = await apiGet('/api/avistamientos?limit=200');
+      data = await apiGet(buildTaxonomiaPath({ reino: 'Animalia', filo: '', clase: '', orden: '', familia: '', genero: '', especie: '' }));
     } catch (e) {
-      console.error('Error fetching default avistamientos:', e);
+      console.error('Error fetching default Animalia avistamientos:', e);
       throw e;
     }
   }

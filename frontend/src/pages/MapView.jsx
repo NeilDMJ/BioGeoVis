@@ -10,6 +10,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import UserNavMenu from '../components/UserNavMenu';
 import SpeciesInfoCard from '../components/SpeciesInfoCard';
+import { fetchAvistamientosAdvanced } from '../services/api';
 import {
   ensureSpeciesInfo,
   getPinIcon,
@@ -26,7 +27,6 @@ const TILE_DESCRIPTIONS = {
   carto: 'Base equilibrada ideal para análisis generales.',
   osm: 'Enfoque comunitario para validar topónimos al instante.',
   opentopo: 'Resalta relieve y cambios altimétricos.',
-  wikimedia: 'Cartografía limpia para reportes y presentaciones.',
   esri: 'Imágenes satelitales para contraste terreno-hábitat.',
   cartoDark: 'Modo oscuro para sesiones nocturnas o datos térmicos.'
 };
@@ -62,6 +62,7 @@ function MapView() {
   const [markers, setMarkers] = useState(() => resolveInitialMarkers().map(ensureSpeciesInfo));
   const hasMarkers = markers.length > 0;
   const [selectedSpecies, setSelectedSpecies] = useState(null);
+  const [loadingDefault, setLoadingDefault] = useState(false);
 
   // Obtener las coordenadas de la ubicación clickeada en el globo
   const clickedLat = location.state?.lat ?? 40.7128;
@@ -163,6 +164,32 @@ function MapView() {
     }
   }, [location.state]);
 
+  // Cargar avistamientos de Animalia por defecto si no hay marcadores
+  useEffect(() => {
+    if (hasMarkers || loadingDefault) return;
+    
+    let cancelled = false;
+    setLoadingDefault(true);
+    
+    (async () => {
+      try {
+        const { markers: animaliaMarkers } = await fetchAvistamientosAdvanced({ reino: 'Animalia' });
+        if (!cancelled && animaliaMarkers && animaliaMarkers.length > 0) {
+          setMarkers(animaliaMarkers.map(ensureSpeciesInfo));
+          try {
+            sessionStorage.setItem('biogeovis:mapMarkers', JSON.stringify(animaliaMarkers));
+          } catch {}
+        }
+      } catch (e) {
+        console.error('Error cargando avistamientos por defecto:', e);
+      } finally {
+        if (!cancelled) setLoadingDefault(false);
+      }
+    })();
+    
+    return () => { cancelled = true; };
+  }, [hasMarkers, loadingDefault]);
+
   useEffect(() => {
     try {
       sessionStorage.setItem('biogeovis:mapMarkers', JSON.stringify(markers));
@@ -207,14 +234,13 @@ function MapView() {
           attribution={provider.attribution}
           url={provider.url}
         />
-        {/* Fallback: si no hay markers mostrar punto único */}
-        {hasMarkers ? null : (
+        {/* Mostrar punto de carga mientras se obtienen datos por defecto */}
+        {!hasMarkers && loadingDefault && (
           <Marker position={[clickedLat, clickedLng]} icon={singlePointIcon}>
             <Popup>
               <div style={{ fontSize: 13 }}>
-                <strong>Punto seleccionado</strong><br />
-                Lat: {clickedLat.toFixed(4)}<br />
-                Lng: {clickedLng.toFixed(4)}
+                <strong>Cargando avistamientos...</strong><br />
+                Reino Animalia
               </div>
             </Popup>
           </Marker>
