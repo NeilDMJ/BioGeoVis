@@ -57,7 +57,7 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Validación de campos obligatorios
         if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName) {
             setStatus({ message: 'Por favor completa todos los campos obligatorios.', tone: 'error' });
@@ -78,7 +78,7 @@ const Register = () => {
 
         setSubmitting(true);
         setStatus({ message: 'Registrando usuario...', tone: 'muted' });
-        
+
         try {
             // Preparar datos para el backend
             const userData = {
@@ -92,10 +92,10 @@ const Register = () => {
 
             // Llamar al servicio de registro
             await register(userData);
-            
-            setStatus({ 
-                message: 'Registro exitoso. Redirigiendo al inicio de sesión...', 
-                tone: 'success' 
+
+            setStatus({
+                message: 'Registro exitoso. Redirigiendo al inicio de sesión...',
+                tone: 'success'
             });
 
             // Redirigir al login después de 2 segundos
@@ -104,9 +104,9 @@ const Register = () => {
             }, 2000);
 
         } catch (error) {
-            setStatus({ 
-                message: error.message || 'Error al registrar usuario. Intenta nuevamente.', 
-                tone: 'error' 
+            setStatus({
+                message: error.message || 'Error al registrar usuario. Intenta nuevamente.',
+                tone: 'error'
             });
         } finally {
             setSubmitting(false);
@@ -133,8 +133,7 @@ const Register = () => {
                         <p className="eyebrow">Alta guiada</p>
                         <h1>Solicita acceso con credenciales verificables.</h1>
                         <p className="lead">
-                            Necesitamos asegurarnos de que los datos sensibles se utilicen dentro de proyectos avalados. Comparte tu contexto
-                            y recibirás un enlace de activación en menos de 24 horas hábiles.
+                            Necesitamos asegurarnos de que los datos sensibles se utilicen dentro de proyectos avalados.
                         </p>
                         <ul className="register-hero__steps">
                             <li>1. Completa el formulario con tu correo institucional.</li>
