@@ -3,3 +3,7 @@ uvicorn
 pymongo[srv]
 pydantic
 certifi
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+bcrypt

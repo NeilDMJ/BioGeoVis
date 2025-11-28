@@ -1,22 +1,35 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, status
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 from .models import (
     Avistamiento,
     AnalyticsRequest,
     AnalyticsResponse,
     AnalyticsDetailRequest,
     AnalyticsDetailResponse,
+    UserRegister,
+    UserLogin,
+    UserResponse,
+    UserInDB,
+    Token,
+)
+from .auth import (
+    get_password_hash,
+    verify_password,
+    create_access_token,
+    get_current_user,
 )
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Set
 from collections import Counter
 import re
 import json
+from bson import ObjectId
 
 
 def _normalize_option(value: Optional[Any]) -> Optional[str]:
@@ -180,6 +193,102 @@ db = client[os.getenv("MONGO_DB", "biogeovis")]
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+
+################################ Autenticación y Usuarios #####################################
+
+@app.post("/api/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def register_user(user: UserRegister):
+    """
+    Registrar un nuevo usuario en la base de datos
+    """
+    # Verificar si el email ya existe
+    existing_user = db.users.find_one({"email": user.email})
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El email ya está registrado"
+        )
+    
+    # Verificar si el username ya existe
+    existing_username = db.users.find_one({"username": user.username})
+    if existing_username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El nombre de usuario ya está en uso"
+        )
+    
+    # Crear el usuario con contraseña hasheada
+    user_dict = user.model_dump(exclude={"password"})
+    user_dict["hashed_password"] = get_password_hash(user.password)
+    user_dict["registrationDate"] = datetime.utcnow()
+    user_dict["isActive"] = True
+    
+    # Insertar en la base de datos
+    result = db.users.insert_one(user_dict)
+    user_dict["_id"] = str(result.inserted_id)
+    
+    # Retornar el usuario sin la contraseña
+    return UserResponse(**user_dict)
+
+
+@app.post("/api/auth/login", response_model=Token)
+async def login_user(user_credentials: UserLogin):
+    """
+    Iniciar sesión y obtener un token JWT
+    """
+    # Buscar usuario por email
+    user = db.users.find_one({"email": user_credentials.email})
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email o contraseña incorrectos",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Verificar contraseña
+    if not verify_password(user_credentials.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email o contraseña incorrectos",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Verificar si el usuario está activo
+    if not user.get("isActive", True):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario inactivo"
+        )
+    
+    # Crear token de acceso
+    access_token_expires = timedelta(minutes=60 * 24 * 7)  # 7 días
+    access_token = create_access_token(
+        data={"sub": user["email"]},
+        expires_delta=access_token_expires
+    )
+    
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/api/auth/me", response_model=UserResponse)
+async def get_current_user_info(current_user_email: str = Depends(get_current_user)):
+    """
+    Obtener información del usuario autenticado
+    """
+    user = db.users.find_one({"email": current_user_email})
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+    
+    user["_id"] = str(user["_id"])
+    return UserResponse(**user)
+
+
 ################################ Avistamientos #####################################
 @app.get("/api/avistamientos")
 def get_all_avistamientos(skip: int = 0, limit: int = 100):

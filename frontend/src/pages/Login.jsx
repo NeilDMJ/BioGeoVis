@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Form } from 'react-bootstrap';
+import { login } from '../services/authService';
 import './Login.css';
 
 const NAV_LINKS = [
@@ -58,23 +59,14 @@ const Login = () => {
         }
 
         try {
-            // Aquí llamarás a tu API de login
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            // const response = await fetch(`${API_URL}/api/login`, {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(formData)
-            // });
+            // Llamar al servicio de autenticación
+            await login(formData.email, formData.password);
             
-            // Simulación de login (eliminar esto cuando tengas el backend)
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Si login es exitoso, guardar token y redirigir
-            // localStorage.setItem('token', response.token);
+            // Si login es exitoso, redirigir al dashboard
             navigate('/dashboard');
             
         } catch (err) {
-            setError('Error al iniciar sesión. Verifica tus credenciales.');
+            setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
         } finally {
             setLoading(false);
         }

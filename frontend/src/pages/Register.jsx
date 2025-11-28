@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Form } from 'react-bootstrap';
+import { register } from '../services/authService';
 import './Register.css';
 
 const NAV_LINKS = [
@@ -18,14 +19,15 @@ const ROLE_OPTIONS = [
 ];
 
 const Register = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        fullName: '',
+        username: '',
         email: '',
-        institution: '',
-        role: '',
-        researchArea: '',
-        motivation: '',
-        acceptPolicies: false
+        password: '',
+        confirmPassword: '',
+        firstName: '',
+        lastName: '',
+        age: '',
     });
     const [status, setStatus] = useState({ message: '', tone: 'muted' });
     const [submitting, setSubmitting] = useState(false);
@@ -55,22 +57,57 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.fullName || !formData.email || !formData.institution || !formData.role || !formData.researchArea || !formData.acceptPolicies) {
-            setStatus({ message: 'Completa los campos obligatorios y acepta las políticas de uso.', tone: 'error' });
+        
+        // Validación de campos obligatorios
+        if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName) {
+            setStatus({ message: 'Por favor completa todos los campos obligatorios.', tone: 'error' });
             return;
         }
+
+        // Validación de contraseñas
+        if (formData.password !== formData.confirmPassword) {
+            setStatus({ message: 'Las contraseñas no coinciden.', tone: 'error' });
+            return;
+        }
+
+        // Validación de longitud de contraseña
+        if (formData.password.length < 8) {
+            setStatus({ message: 'La contraseña debe tener al menos 8 caracteres.', tone: 'error' });
+            return;
+        }
+
         setSubmitting(true);
-        setStatus({ message: 'Enviando solicitud...', tone: 'muted' });
+        setStatus({ message: 'Registrando usuario...', tone: 'muted' });
+        
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1200));
-            setStatus({ message: 'Solicitud enviada correctamente. Revisa tu correo institucional para confirmar el registro.', tone: 'success' });
-            setFormData((prev) => ({
-                ...prev,
-                motivation: '',
-                acceptPolicies: false
-            }));
+            // Preparar datos para el backend
+            const userData = {
+                username: formData.username,
+                email: formData.email,
+                password: formData.password,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                age: formData.age ? parseInt(formData.age) : null,
+            };
+
+            // Llamar al servicio de registro
+            await register(userData);
+            
+            setStatus({ 
+                message: 'Registro exitoso. Redirigiendo al inicio de sesión...', 
+                tone: 'success' 
+            });
+
+            // Redirigir al login después de 2 segundos
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
+
         } catch (error) {
-            setStatus({ message: 'No pudimos enviar la solicitud. Intenta nuevamente.', tone: 'error' });
+            setStatus({ 
+                message: error.message || 'Error al registrar usuario. Intenta nuevamente.', 
+                tone: 'error' 
+            });
         } finally {
             setSubmitting(false);
         }
@@ -130,8 +167,8 @@ const Register = () => {
                 <section className="register-grid">
                     <article className="register-card scroll-animate" aria-label="Formulario de registro">
                         <header className="register-card__header">
-                            <h2>Formulario de acceso</h2>
-                            <p>Validaremos tu información con tu institución de origen.</p>
+                            <h2>Formulario de registro</h2>
+                            <p>Completa todos los campos para crear tu cuenta.</p>
                         </header>
 
                         {status.message && (
@@ -141,95 +178,111 @@ const Register = () => {
                         )}
 
                         <Form onSubmit={handleSubmit}>
-                            <Form.Group controlId="fullName" className="mb-3">
-                                <Form.Label>Nombre completo*</Form.Label>
+                            <Form.Group controlId="username" className="mb-3">
+                                <Form.Label>Nombre de usuario*</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    name="fullName"
-                                    value={formData.fullName}
+                                    name="username"
+                                    value={formData.username}
                                     onChange={handleChange}
-                                    placeholder="Nombres y apellidos"
+                                    placeholder="usuario123"
                                     disabled={submitting}
+                                    minLength={5}
+                                    maxLength={20}
                                 />
+                                <Form.Text className="text-muted">
+                                    Entre 5 y 20 caracteres
+                                </Form.Text>
                             </Form.Group>
 
                             <Form.Group controlId="email" className="mb-3">
-                                <Form.Label>Correo institucional*</Form.Label>
+                                <Form.Label>Correo electrónico*</Form.Label>
                                 <Form.Control
                                     type="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="usuario@institucion.edu"
+                                    placeholder="usuario@ejemplo.com"
                                     disabled={submitting}
                                 />
                             </Form.Group>
 
-                            <Form.Group controlId="institution" className="mb-3">
-                                <Form.Label>Institución o laboratorio*</Form.Label>
+                            <Form.Group controlId="firstName" className="mb-3">
+                                <Form.Label>Nombre*</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    name="institution"
-                                    value={formData.institution}
+                                    name="firstName"
+                                    value={formData.firstName}
                                     onChange={handleChange}
-                                    placeholder="Nombre de la institución"
+                                    placeholder="Tu nombre"
                                     disabled={submitting}
+                                    minLength={2}
+                                    maxLength={50}
                                 />
                             </Form.Group>
 
-                            <Form.Group controlId="role" className="mb-3">
-                                <Form.Label>Rol principal*</Form.Label>
-                                <Form.Select name="role" value={formData.role} onChange={handleChange} disabled={submitting}>
-                                    <option value="">Selecciona una opción</option>
-                                    {ROLE_OPTIONS.map((option) => (
-                                        <option key={option.value} value={option.value}>{option.label}</option>
-                                    ))}
-                                </Form.Select>
-                            </Form.Group>
-
-                            <Form.Group controlId="researchArea" className="mb-3">
-                                <Form.Label>Área de investigación o curso*</Form.Label>
+                            <Form.Group controlId="lastName" className="mb-3">
+                                <Form.Label>Apellido*</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    name="researchArea"
-                                    value={formData.researchArea}
+                                    name="lastName"
+                                    value={formData.lastName}
                                     onChange={handleChange}
-                                    placeholder="Ej. Zoología, Cambio climático, SIG aplicado"
+                                    placeholder="Tu apellido"
                                     disabled={submitting}
+                                    minLength={2}
+                                    maxLength={50}
                                 />
                             </Form.Group>
 
-                            <Form.Group controlId="motivation" className="mb-4">
-                                <Form.Label>Objetivo o proyecto</Form.Label>
+                            <Form.Group controlId="age" className="mb-3">
+                                <Form.Label>Edad (opcional)</Form.Label>
                                 <Form.Control
-                                    as="textarea"
-                                    rows={4}
-                                    name="motivation"
-                                    value={formData.motivation}
+                                    type="number"
+                                    name="age"
+                                    value={formData.age}
                                     onChange={handleChange}
-                                    placeholder="Describe brevemente el alcance de tu investigación"
+                                    placeholder="18"
                                     disabled={submitting}
+                                    min={10}
                                 />
                             </Form.Group>
 
-                            <Form.Check
-                                type="checkbox"
-                                id="acceptPolicies"
-                                name="acceptPolicies"
-                                label="Confirmo que utilizaré BioGeoVis bajo las políticas de ética y seguridad de datos."
-                                checked={formData.acceptPolicies}
-                                onChange={handleChange}
-                                disabled={submitting}
-                                className="mb-4"
-                            />
+                            <Form.Group controlId="password" className="mb-3">
+                                <Form.Label>Contraseña*</Form.Label>
+                                <Form.Control
+                                    type="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="••••••••"
+                                    disabled={submitting}
+                                    minLength={8}
+                                />
+                                <Form.Text className="text-muted">
+                                    Mínimo 8 caracteres
+                                </Form.Text>
+                            </Form.Group>
+
+                            <Form.Group controlId="confirmPassword" className="mb-4">
+                                <Form.Label>Confirmar contraseña*</Form.Label>
+                                <Form.Control
+                                    type="password"
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder="••••••••"
+                                    disabled={submitting}
+                                />
+                            </Form.Group>
 
                             <Button type="submit" className="register-submit" disabled={submitting}>
-                                {submitting ? 'Enviando...' : 'Enviar solicitud'}
+                                {submitting ? 'Registrando...' : 'Crear cuenta'}
                             </Button>
 
                             <div className="register-card__footer">
-                                <span>¿Ya tienes acceso?</span>
-                                <Link to="/login" className="register-link">Regresa al login</Link>
+                                <span>¿Ya tienes cuenta?</span>
+                                <Link to="/login" className="register-link">Iniciar sesión</Link>
                             </div>
                         </Form>
                     </article>

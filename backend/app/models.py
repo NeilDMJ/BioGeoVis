@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import Optional, Annotated, List
 from datetime import datetime
 from bson import ObjectId
@@ -104,3 +104,56 @@ class AnalyticsDetailResponse(BaseModel):
     dimensionLabel: str
     buckets: List[AnalyticsDetailBucket]
     total: int
+
+
+# ==================== Modelos de Usuario y Autenticación ====================
+
+class UserBase(BaseModel):
+    """Modelo base para usuario"""
+    username: str = Field(..., min_length=5, max_length=20)
+    email: EmailStr
+    firstName: str = Field(..., min_length=2, max_length=50)
+    lastName: str = Field(..., min_length=2, max_length=50)
+    age: Optional[int] = Field(default=None, ge=10)
+    photo: Optional[str] = None
+
+
+class UserRegister(UserBase):
+    """Modelo para registro de usuario"""
+    password: str = Field(..., min_length=8)
+
+
+class UserLogin(BaseModel):
+    """Modelo para login de usuario"""
+    email: EmailStr
+    password: str
+
+
+class UserInDB(UserBase):
+    """Modelo de usuario en base de datos"""
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
+    
+    id: Optional[str] = Field(default=None, alias="_id")
+    hashed_password: str
+    registrationDate: datetime = Field(default_factory=datetime.utcnow)
+    isActive: bool = Field(default=True)
+
+
+class UserResponse(UserBase):
+    """Modelo de respuesta de usuario (sin contraseña)"""
+    model_config = ConfigDict(populate_by_name=True)
+    
+    id: Optional[str] = Field(default=None, alias="_id")
+    registrationDate: datetime
+    isActive: bool = Field(default=True)
+
+
+class Token(BaseModel):
+    """Modelo para respuesta de token"""
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    """Modelo para datos del token"""
+    email: Optional[str] = None
