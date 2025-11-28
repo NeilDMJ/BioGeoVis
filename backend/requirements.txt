@@ -2,8 +2,10 @@ fastapi
 uvicorn
 pymongo[srv]
 pydantic
+pydantic[email]
 certifi
 passlib[bcrypt]
 python-jose[cryptography]
 python-multipart
 bcrypt
+email-validator
