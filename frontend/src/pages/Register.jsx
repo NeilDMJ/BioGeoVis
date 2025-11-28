@@ -229,11 +229,6 @@ const Register = () => {
                     </div>
                     <div className="register-hero__status">
                         <article>
-                            <span>Tiempo de respuesta promedio</span>
-                            <strong>&lt; 18 h</strong>
-                            <p>Equipo de soporte continental.</p>
-                        </article>
-                        <article>
                             <span>Solicitudes aprobadas</span>
                             <strong>92%</strong>
                             <p>Cuando incluyen correo institucional válido.</p>
@@ -379,7 +374,7 @@ const Register = () => {
                                         }
                                         // Prevenir si ya hay 3 dígitos y no es tecla de control
                                         const isControlKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
-                                        if (e.target.value.length >= 3 && !isControlKey) {
+                                        if (e.target.value.length >= 2 && !isControlKey) {
                                             e.preventDefault();
                                         }
                                     }}
@@ -466,13 +461,10 @@ const Register = () => {
                 </section>
 
                 <section className="register-faq scroll-animate" aria-label="Preguntas frecuentes">
-                    <article>
-                        <h4>¿Qué datos debo preparar?</h4>
-                        <p>Nombre oficial del proyecto, carta de apoyo del tutor (si aplica) y alcance geográfico aproximado.</p>
-                    </article>
+                  
                     <article>
                         <h4>¿Puedo sumar a mi equipo?</h4>
-                        <p>Sí, anexa los correos institucionales en el campo de motivación y enviaremos invitaciones grupales.</p>
+                        <p>Sí, anexa los correos institucionales en el campo de motivación.</p>
                     </article>
                     <article>
                         <h4>¿Qué pasa si no tengo cuenta institucional?</h4>

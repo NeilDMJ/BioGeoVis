@@ -99,7 +99,7 @@ export const validateAge = (age) => {
     if (isNaN(ageNum) || ageNum < 0) {
         return { isValid: false, message: 'La edad no puede ser negativa' };
     }
-    if (ageNum < 10 || ageNum > 100) {
+    if (ageNum < 10 || ageNum > 85 ) {
         return { isValid: false, message: 'La edad debe ser un número entre 10 y 100' };
     }
     return { isValid: true, message: '' };
@@ -161,6 +161,8 @@ export const validateLoginForm = (formData) => {
 
 export const register = async (userData) => {
     try {
+        console.log('[AuthService] Intentando registro en:', `${API_URL}/api/auth/register`);
+        
         const response = await fetch(`${API_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
@@ -181,12 +183,18 @@ export const register = async (userData) => {
         };
     } catch (error) {
         console.error('Error en registro:', error);
+        // Mejorar mensaje de error para problemas de conexión
+        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+            throw new Error('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+        }
         throw error;
     }
 };
 
 export const login = async (email, password) => {
     try {
+        console.log('[AuthService] Intentando login en:', `${API_URL}/api/auth/login`);
+        
         const response = await fetch(`${API_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
@@ -231,6 +239,10 @@ export const login = async (email, password) => {
         };
     } catch (error) {
         console.error('Error en login:', error);
+        // Mejorar mensaje de error para problemas de conexión
+        if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+            throw new Error('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+        }
         throw error;
     }
 };
