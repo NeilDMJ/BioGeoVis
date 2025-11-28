@@ -95,6 +95,20 @@ function MapView() {
     mapRef.current.fitBounds(bounds, { padding: [40, 40], animate: true });
   }, [hasMarkers, markers]);
 
+  // Centrar el mapa cuando se navega con coordenadas específicas (sin marcadores)
+  useEffect(() => {
+    if (!mapRef.current || hasMarkers) return;
+    // Solo centrar si hay coordenadas en el state de navegación
+    if (location.state?.lat != null && location.state?.lng != null) {
+      const lat = parseFloat(location.state.lat);
+      const lng = parseFloat(location.state.lng);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        // Usar zoom más alto (10) para ver mejor la ubicación específica
+        mapRef.current.setView([lat, lng], 10, { animate: true });
+      }
+    }
+  }, [location.state?.lat, location.state?.lng, hasMarkers]);
+
   // Componente interno para clusters usando la API de react-leaflet
   function MarkerClusters({ points, onMarkerClick }) {
     const map = useMap();

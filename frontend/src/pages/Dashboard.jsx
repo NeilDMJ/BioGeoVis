@@ -144,21 +144,24 @@ const Dashboard = () => {
         }
     }, []);
 
-    const handleManualCoordinates = useCallback(({ lat, lon }) => {
+    const handleManualCoordinates = useCallback(({ lat, lon, label }) => {
         const marker = ensureSpeciesInfo({
             lat,
             lng: lon,
-            label: 'Coordenada manual',
-            color: '#ffb347',
+            label: label || 'Coordenada manual',
+            color: label ? '#3b82f6' : '#ffb347', // Azul para búsqueda predictiva, naranja para manual
             speciesInfo: {
-                scientificName: 'Punto definido manualmente',
+                scientificName: label || 'Punto definido manualmente',
                 taxonomy: {},
-                source: 'Entrada manual'
+                source: label ? 'Búsqueda predictiva' : 'Entrada manual'
             }
         });
         setManualMarker(marker);
         setSelectedMarker(marker);
-        setSearchStatus({ message: 'Marcador manual agregado al mapa', tone: 'success' });
+        setSearchStatus({ 
+            message: label ? `Ubicación: ${label}` : 'Marcador manual agregado al mapa', 
+            tone: 'success' 
+        });
     }, []);
 
     const kpis = useMemo(() => ([

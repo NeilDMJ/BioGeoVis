@@ -45,7 +45,9 @@ function DashboardMap({
     if (!mapRef.current || !hasMarkers) return;
     if (combinedMarkers.length === 1) {
       const marker = combinedMarkers[0];
-      mapRef.current.setView([marker.lat, marker.lng], 6, { animate: true });
+      // Usar zoom más alto (10) para marcadores individuales (manual o búsqueda)
+      const zoomLevel = marker.__origin === 'manual' || marker.__origin === 'search' ? 10 : 6;
+      mapRef.current.setView([marker.lat, marker.lng], zoomLevel, { animate: true });
       return;
     }
     const latitudes = combinedMarkers.map((m) => m.lat);
@@ -56,6 +58,23 @@ function DashboardMap({
     ];
     mapRef.current.fitBounds(bounds, { padding: [30, 30], animate: true });
   }, [combinedMarkers, hasMarkers]);
+
+  // Centrar el mapa cuando se añade un marcador manual o de búsqueda
+  useEffect(() => {
+    if (!mapRef.current) return;
+    // Si hay un marcador manual nuevo, centrar en él con zoom alto
+    if (manual) {
+      mapRef.current.setView([manual.lat, manual.lng], 10, { animate: true });
+    }
+  }, [manual]);
+
+  // Centrar el mapa cuando se añade un marcador de búsqueda
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (search) {
+      mapRef.current.setView([search.lat, search.lng], 10, { animate: true });
+    }
+  }, [search]);
 
   const center = useMemo(() => {
     if (!hasMarkers) return DEFAULT_CENTER;
