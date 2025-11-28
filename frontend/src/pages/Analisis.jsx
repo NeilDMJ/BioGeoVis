@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import UserNavMenu from '../components/UserNavMenu';
 import './Analisis.css';
 import AnalyticsBarChart from '../components/charts/AnalyticsBarChart';
 import AnalyticsLineChart from '../components/charts/AnalyticsLineChart';
@@ -226,7 +227,7 @@ const Analisis = () => {
                     <Link to="/explorer" className="home__nav-link external">Explorer</Link>
                     <Link to="/dashboard" className="home__nav-link external">Dashboard</Link>
                     <Link to="/about" className="home__nav-link external">Acerca de Nosotros</Link>
-                    <Link to="/login" className="home__nav-link nav-login-cta">Iniciar sesión</Link>
+                    <UserNavMenu />
                 </nav>
             </header>
             <div className="analisis-shell">

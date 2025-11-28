@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import UserNavMenu from '../components/UserNavMenu';
 import './Dashboard.css';
 import Filter from '../components/Filter';
 import DashboardMap from '../components/DashboardMap';
@@ -231,7 +232,7 @@ const Dashboard = () => {
                     <Link to="/analisis" className="home__nav-link external">Analisis</Link>
                     <Link to="/map" className="home__nav-link external">Ir al Mapa  </Link>
                     <Link to="/about" className="home__nav-link external">Acerca de Nosotros</Link>
-                    <Link to="/login" className="home__nav-link nav-login-cta">Iniciar sesión</Link>
+                    <UserNavMenu />
                 </nav>
             </header>
 

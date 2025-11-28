@@ -8,6 +8,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
+import UserNavMenu from '../components/UserNavMenu';
 import SpeciesInfoCard from '../components/SpeciesInfoCard';
 import {
   ensureSpeciesInfo,
@@ -237,7 +238,7 @@ function MapView() {
           <Link to="/about" className="mapview__nav-link">
             Acerca de Nosotros
           </Link>
-          <Link to="/login" className="mapview__nav-link nav-login-cta">Iniciar sesión</Link>
+          <UserNavMenu />
         </nav>
         <div className="mapview__nav-actions">
           <Button variant="outline-light" size="sm" onClick={() => navigate('/explorer')}>

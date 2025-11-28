@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Home from './pages/Home';
 import Explorer from './pages/Explorer';
 import MapView from './pages/MapView';
@@ -15,20 +16,22 @@ function App() {
   usePreventZoom();
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/explorer" element={<Explorer />} />
-        <Route path="/map" element={<MapView />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/analisis" element={<Analisis />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/species-detail" element={<SpeciesDetail />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/explorer" element={<Explorer />} />
+          <Route path="/map" element={<MapView />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/analisis" element={<Analisis />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/species-detail" element={<SpeciesDetail />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
