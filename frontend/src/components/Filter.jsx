@@ -244,12 +244,30 @@ export default function Filter({
   const triggerSearch = (customTerm) => {
     const term = (customTerm ?? search).trim();
     if (!term) return;
+    
+    // Verificar que hay al menos un filtro avanzado antes de buscar
+    if (!hasValidFilter(adv)) {
+      setFilterError("Selecciona al menos un filtro avanzado antes de buscar por ubicación");
+      // Abrir el panel de filtros avanzados para que el usuario vea el error
+      setOpen(true);
+      return;
+    }
+    
     onSearch?.(term);
   };
 
   const handleSuggestionSelect = (suggestion) => {
     setSearch(suggestion.label);
     setLocationSuggestions([]);
+    
+    // Verificar que hay al menos un filtro avanzado antes de navegar
+    if (!hasValidFilter(adv)) {
+      setFilterError("Selecciona al menos un filtro avanzado antes de buscar por ubicación");
+      // Abrir el panel de filtros avanzados para que el usuario vea el error
+      setOpen(true);
+      return;
+    }
+    
     // Si tiene coordenadas, navegar al mapa con esas coordenadas
     if (suggestion.lat && suggestion.lon) {
       onApplyCoordinates?.({ lat: suggestion.lat, lon: suggestion.lon, label: suggestion.label });
@@ -260,6 +278,15 @@ export default function Filter({
 
   const applyCoords = (e) => {
     e.preventDefault();
+    
+    // Verificar que hay al menos un filtro avanzado antes de aplicar coordenadas
+    if (!hasValidFilter(adv)) {
+      setFilterError("Selecciona al menos un filtro avanzado antes de aplicar coordenadas");
+      // Abrir el panel de filtros avanzados para que el usuario vea el error
+      setOpen(true);
+      return;
+    }
+    
     const lat = parseFloat(coords.lat);
     const lon = parseFloat(coords.lon);
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
