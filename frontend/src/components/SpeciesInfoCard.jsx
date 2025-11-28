@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SpeciesInfoCard.css';
 import { getSpeciesImage } from '../services/speciesImage';
 
@@ -21,6 +22,7 @@ const buildBaseState = (species) => {
 };
 
 function SpeciesInfoCard({ species, onClose }) {
+  const navigate = useNavigate();
   if (!species) return null;
   const info = species.speciesInfo || {};
   const taxonomy = info.taxonomy || {};
@@ -96,6 +98,10 @@ function SpeciesInfoCard({ species, onClose }) {
     event.target.src = FALLBACK_IMAGE;
   };
 
+  const handleReadMore = () => {
+    navigate('/species-detail', { state: { species } });
+  };
+
   const resolvedImage = imageState.url || FALLBACK_IMAGE;
 
   return (
@@ -145,6 +151,15 @@ function SpeciesInfoCard({ species, onClose }) {
               ))}
             </div>
           )}
+          <button 
+            type="button" 
+            className="species-card__read-more"
+            onClick={handleReadMore}
+          >
+            
+            Leer más sobre esta especie
+          
+          </button>
         </div>
       </div>
     </div>

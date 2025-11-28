@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import './Dashboard.css';
 import Filter from '../components/Filter';
 import DashboardMap from '../components/DashboardMap';
@@ -23,6 +23,7 @@ const SEARCH_STRATEGIES = [
 
 
 const Dashboard = () => {
+    const location = useLocation();
     const [mapView, setMapView] = useState(DEFAULT_VIEW);
     const [markers, setMarkers] = useState([]);
     const [mapLoading, setMapLoading] = useState(false);
@@ -34,6 +35,26 @@ const Dashboard = () => {
     const [searchStatus, setSearchStatus] = useState({ message: '', tone: 'muted' });
     const [refreshedAt, setRefreshedAt] = useState(null);
     const [activeSection, setActiveSection] = useState('hero');
+
+    // Recibir coordenadas desde navegación (ej: desde Explorer)
+    useEffect(() => {
+        if (location.state?.lat != null && location.state?.lng != null) {
+            const marker = ensureSpeciesInfo({
+                lat: parseFloat(location.state.lat),
+                lng: parseFloat(location.state.lng),
+                label: location.state.label || 'Ubicación seleccionada',
+                color: '#3b82f6',
+                speciesInfo: {
+                    scientificName: location.state.label || 'Punto de búsqueda',
+                    taxonomy: {},
+                    source: 'Búsqueda predictiva'
+                }
+            });
+            setManualMarker(marker);
+            setSelectedMarker(marker);
+            setSearchStatus({ message: 'Ubicación marcada en el mapa', tone: 'success' });
+        }
+    }, [location.state]);
 
     const {
         filters: persistedFilters,

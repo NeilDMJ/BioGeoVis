@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import "./Filter.css";
 import { fetchLocationSuggestions } from "../services/api";
 import { useTaxonomyOptions } from "../hooks/useTaxonomyOptions";
@@ -11,6 +11,75 @@ const LOCATION_TYPE_LABELS = {
   municipio: "Municipio",
   localidad: "Localidad",
   pais: "País",
+};
+
+// ============ FUNCIONES DE VALIDACIÓN ============
+
+/**
+ * Valida si un texto es un término de búsqueda válido.
+ * Permite nombres de especies, lugares, caracteres acentuados y ñ.
+ * Rechaza cadenas sin sentido o solo caracteres especiales.
+ */
+const isValidSearchTerm = (text) => {
+  if (!text || typeof text !== "string") return true; // Vacío es válido (opcional)
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return true; // Vacío es válido
+  if (trimmed.length < 2) return false; // Muy corto
+  
+  // Extraer solo caracteres alfabéticos (incluyendo acentos y ñ)
+  const alphabetic = trimmed.replace(/[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/g, "");
+  if (alphabetic.length < 2) return false; // Debe tener al menos 2 letras
+  
+  // Detectar patrones sin sentido (solo consonantes o repeticiones excesivas)
+  const vowels = alphabetic.match(/[aeiouáéíóúü]/gi) || [];
+  if (alphabetic.length > 4 && vowels.length === 0) return false; // Sin vocales
+  
+  // Detectar repeticiones excesivas (ej: "aaaa", "xxxxx")
+  if (/(.)\1{3,}/i.test(trimmed)) return false;
+  
+  return true;
+};
+
+/**
+ * Verifica si hay al menos un filtro válido aplicado
+ */
+const hasValidFilter = (adv) => {
+  const { nombreComun, nombreCientifico, especie, reino, filo, clase, orden, familia, genero, pais, fechaInicio, fechaFin } = adv;
+  
+  // Texto válido en campos de texto
+  if (nombreComun?.trim() && isValidSearchTerm(nombreComun)) return true;
+  if (nombreCientifico?.trim() && isValidSearchTerm(nombreCientifico)) return true;
+  
+  // Cualquier campo de taxonomía seleccionado
+  if (especie?.trim()) return true;
+  if (reino?.trim()) return true;
+  if (filo?.trim()) return true;
+  if (clase?.trim()) return true;
+  if (orden?.trim()) return true;
+  if (familia?.trim()) return true;
+  if (genero?.trim()) return true;
+  if (pais?.trim()) return true;
+  
+  // Rango de fechas completo
+  if (fechaInicio && fechaFin) return true;
+  
+  return false;
+};
+
+// Estado inicial de los filtros
+const INITIAL_ADV_STATE = {
+  nombreComun: "",
+  nombreCientifico: "",
+  especie: "",
+  reino: "",
+  filo: "",
+  clase: "",
+  orden: "",
+  familia: "",
+  genero: "",
+  pais: "",
+  fechaInicio: "",
+  fechaFin: "",
 };
 
 export default function Filter({
@@ -34,20 +103,9 @@ export default function Filter({
   const [search, setSearch] = useState("");
   const [coords, setCoords] = useState({ lat: "", lon: "" });
   const [open, setOpen] = useState(false);
-  const [adv, setAdv] = useState({
-    nombreComun: "",
-    nombreCientifico: "",
-    especie: "",
-    reino: "",
-    filo: "",
-    clase: "",
-    orden: "",
-    familia: "",
-    genero: "",
-    pais: "",
-    fechaInicio: "",
-    fechaFin: "",
-  });
+  const [adv, setAdv] = useState(INITIAL_ADV_STATE);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [filterError, setFilterError] = useState("");
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [suggestionError, setSuggestionError] = useState(null);
@@ -119,22 +177,59 @@ export default function Filter({
       setSuggestionLoading(false);
       return undefined;
     }
+    
+    // Validar que sea un término válido antes de buscar
+    if (!isValidSearchTerm(term)) {
+      setLocationSuggestions([]);
+      setSuggestionError("Ingresa un término válido");
+      setSuggestionLoading(false);
+      return undefined;
+    }
+    
     const controller = new AbortController();
     const debounce = setTimeout(() => {
       setSuggestionLoading(true);
       setSuggestionError(null);
-      fetchLocationSuggestions(term, { signal: controller.signal })
-        .then((results) => setLocationSuggestions(results))
+      
+      // Usar OpenStreetMap Nominatim para búsqueda predictiva de ubicaciones
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(term)}&limit=5&addressdetails=1`, {
+        signal: controller.signal,
+        headers: { 'Accept-Language': 'es' }
+      })
+        .then(res => res.json())
+        .then(data => {
+          const suggestions = data.map(item => {
+            // Determinar el tipo de ubicación
+            let type = 'localidad';
+            if (item.type === 'country' || item.class === 'boundary' && item.addresstype === 'country') {
+              type = 'pais';
+            } else if (item.type === 'state' || item.type === 'province' || item.addresstype === 'state') {
+              type = 'estado';
+            } else if (item.type === 'city' || item.type === 'town' || item.addresstype === 'city') {
+              type = 'ciudad';
+            } else if (item.type === 'municipality') {
+              type = 'municipio';
+            }
+            
+            return {
+              label: item.display_name.split(',').slice(0, 3).join(','),
+              type,
+              lat: parseFloat(item.lat),
+              lon: parseFloat(item.lon)
+            };
+          });
+          setLocationSuggestions(suggestions);
+        })
         .catch((error) => {
           if (controller.signal.aborted) return;
           console.error("[Filter] Location suggestions error", error);
-          setSuggestionError(error.message || "Sin coincidencias");
+          setSuggestionError("Sin coincidencias");
           setLocationSuggestions([]);
         })
         .finally(() => {
           if (!controller.signal.aborted) setSuggestionLoading(false);
         });
-    }, 250);
+    }, 300);
     return () => {
       clearTimeout(debounce);
       controller.abort();
@@ -152,10 +247,15 @@ export default function Filter({
     onSearch?.(term);
   };
 
-  const handleSuggestionSelect = (value) => {
-    setSearch(value);
+  const handleSuggestionSelect = (suggestion) => {
+    setSearch(suggestion.label);
     setLocationSuggestions([]);
-    triggerSearch(value);
+    // Si tiene coordenadas, navegar al mapa con esas coordenadas
+    if (suggestion.lat && suggestion.lon) {
+      onApplyCoordinates?.({ lat: suggestion.lat, lon: suggestion.lon, label: suggestion.label });
+    } else {
+      triggerSearch(suggestion.label);
+    }
   };
 
   const applyCoords = (e) => {
@@ -169,16 +269,76 @@ export default function Filter({
     }
   };
 
-  const updateAdv = (k) => (e) =>
-    setAdv((f) => ({ ...f, [k]: e.target.value }));
+  const updateAdv = (k) => (e) => {
+    const value = e.target.value;
+    setAdv((f) => ({ ...f, [k]: value }));
+    // Limpiar error de validación cuando el usuario modifica el campo
+    if (validationErrors[k]) {
+      setValidationErrors((prev) => ({ ...prev, [k]: "" }));
+    }
+    // Limpiar error general de filtros
+    if (filterError) {
+      setFilterError("");
+    }
+  };
+
+  // Función para limpiar todos los filtros
+  const clearAllFilters = useCallback(() => {
+    setAdv(INITIAL_ADV_STATE);
+    setCoords({ lat: "", lon: "" });
+    setSearch("");
+    setValidationErrors({});
+    setFilterError("");
+    setLocationSuggestions([]);
+  }, []);
 
   const applyAdv = (e) => {
     e.preventDefault();
-    if (adv.fechaInicio && adv.fechaFin && adv.fechaInicio > adv.fechaFin) {
-      alert("La fecha de inicio no puede ser mayor que la fecha fin.");
+    
+    // Limpiar errores previos
+    const errors = {};
+    let hasError = false;
+    
+    // 1. Validar campos de texto
+    if (adv.nombreComun?.trim() && !isValidSearchTerm(adv.nombreComun)) {
+      errors.nombreComun = "Ingresa un término válido";
+      hasError = true;
+    }
+    if (adv.nombreCientifico?.trim() && !isValidSearchTerm(adv.nombreCientifico)) {
+      errors.nombreCientifico = "Ingresa un término válido";
+      hasError = true;
+    }
+    
+    // 2. Intercambiar fechas si están invertidas (sin mostrar error)
+    let finalAdv = { ...adv };
+    if (adv.fechaInicio && adv.fechaFin) {
+      const inicio = new Date(adv.fechaInicio);
+      const fin = new Date(adv.fechaFin);
+      if (inicio > fin) {
+        finalAdv = {
+          ...adv,
+          fechaInicio: adv.fechaFin,
+          fechaFin: adv.fechaInicio,
+        };
+        setAdv(finalAdv); // Actualizar UI con fechas intercambiadas
+      }
+    }
+    
+    // 3. Verificar que hay al menos un filtro válido
+    if (!hasValidFilter(finalAdv)) {
+      setFilterError("Selecciona al menos un filtro para buscar");
+      hasError = true;
+    }
+    
+    if (hasError) {
+      setValidationErrors(errors);
       return;
     }
-    onApplyAdvancedFilters?.(adv);
+    
+    // Limpiar errores y aplicar
+    setValidationErrors({});
+    setFilterError("");
+    onApplyAdvancedFilters?.(finalAdv);
   };
 
   return (
@@ -204,20 +364,29 @@ export default function Filter({
                 {taxonomyError}
               </p>
             )}
+            {filterError && (
+              <p className="filter-error" role="alert">
+                 {filterError}
+              </p>
+            )}
             <form onSubmit={applyAdv}>
               <div className="grid-2">
                 {[
                   ["nombreComun", "Nombre común", "Ej. Jaguar, Águila..."],
                   ["nombreCientifico", "Nombre científico", "Ej. Panthera onca"],
                 ].map(([k, label, ph]) => (
-                  <div className="field" key={k}>
+                  <div className={`field ${validationErrors[k] ? "has-error" : ""}`} key={k}>
                     <label>{label}</label>
                     <input
                       type="text"
                       placeholder={ph}
                       value={adv[k]}
                       onChange={updateAdv(k)}
+                      className={validationErrors[k] ? "input-error" : ""}
                     />
+                    {validationErrors[k] && (
+                      <span className="field-error">{validationErrors[k]}</span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -262,9 +431,19 @@ export default function Filter({
                 </div>
               </details>
 
-              <button className="primary-btn mt" type="submit">
-                Aplicar filtros
-              </button>
+              <div className="filter-actions">
+                <button className="primary-btn" type="submit">
+                   Buscar
+                </button>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  onClick={clearAllFilters}
+                  title="Limpiar todos los filtros"
+                >
+                   Limpiar todo
+                </button>
+              </div>
             </form>
           </section>
         )}
@@ -308,18 +487,18 @@ export default function Filter({
                   {suggestionError && !suggestionLoading && (
                     <p className="search-suggestions__status error">{suggestionError}</p>
                   )}
-                  {locationSuggestions.map(({ label, type }) => (
+                  {locationSuggestions.map((suggestion) => (
                     <button
                       type="button"
-                      key={`${type}-${label}`}
+                      key={`${suggestion.type}-${suggestion.label}`}
                       className="search-suggestions__item"
                       onMouseDown={(event) => {
                         event.preventDefault();
-                        handleSuggestionSelect(label);
+                        handleSuggestionSelect(suggestion);
                       }}
                     >
-                      <span>{label}</span>
-                      <span className="pill">{LOCATION_TYPE_LABELS[type] || type}</span>
+                      <span>{suggestion.label}</span>
+                      <span className="pill">{LOCATION_TYPE_LABELS[suggestion.type] || suggestion.type}</span>
                     </button>
                   ))}
                 </div>

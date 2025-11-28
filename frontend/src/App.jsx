@@ -7,9 +7,14 @@ import Dashboard from './pages/Dashboard';
 import Analisis from './pages/Analisis';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import SpeciesDetail from './pages/SpeciesDetail';
+import { usePreventZoom } from './hooks/usePreventZoom';
 
-function App(){
-  return(
+function App() {
+  // Prevenir zoom con Ctrl+scroll
+  usePreventZoom();
+
+  return (
     <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
@@ -18,9 +23,10 @@ function App(){
         <Route path="/map" element={<MapView />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/analisis" element = {<Analisis/>}/>
+        <Route path="/analisis" element={<Analisis />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/species-detail" element={<SpeciesDetail />} />
       </Routes>
     </Router>
   );

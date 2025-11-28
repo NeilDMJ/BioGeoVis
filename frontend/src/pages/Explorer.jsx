@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import Globe from 'globe.gl';
 import Filter from '../components/Filter';
+import LoadingModal from '../components/LoadingModal';
 import { fetchAvistamientosAdvanced, persistAdvancedFilters } from '../services/api';
 import './Explorer.css';
 
@@ -67,29 +68,77 @@ function Explorer() {
       try {
         const { markers } = await fetchAvistamientosAdvanced(advancedFilters);
         if (!cancelled) {
-          setMarkers(markers);
-          // Persistimos en sessionStorage para evitar pérdida de state en navegación/recargas
-          try { sessionStorage.setItem('biogeovis:mapMarkers', JSON.stringify(markers)); } catch {}
-          // Navegar automáticamente al mapa con los marcadores (también pasamos un flag liviano)
-          navigate('/map', { state: { markers } });
+          if (markers && markers.length > 0) {
+            setMarkers(markers);
+            // Persistimos en sessionStorage para evitar pérdida de state en navegación/recargas
+            try { sessionStorage.setItem('biogeovis:mapMarkers', JSON.stringify(markers)); } catch {}
+            // Pequeño delay para mostrar el último paso del modal
+            setTimeout(() => {
+              if (!cancelled) {
+                setLoading(false);
+                // Navegar automáticamente al mapa con los marcadores
+                navigate('/map', { state: { markers } });
+              }
+            }, 800);
+          } else {
+            setError('No se encontraron avistamientos con los filtros seleccionados');
+            setLoading(false);
+          }
         }
       } catch (e) {
         console.error(e);
-        if (!cancelled) setError(e.message || 'Error al obtener avistamientos');
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setError(e.message || 'Error al obtener avistamientos');
+          setLoading(false);
+        }
       }
     })();
     return () => { cancelled = true; };
-  }, [advancedFilters]);
+  }, [advancedFilters, navigate]);
 
   const handleApplyAdvancedFilters = (filters) => {
     setAdvancedFilters(filters);
     persistAdvancedFilters(filters);
   };
 
+  // Manejar navegación por coordenadas (desde búsqueda predictiva o coordenadas manuales)
+  const handleApplyCoordinates = (coords) => {
+    if (coords && coords.lat != null && coords.lon != null) {
+      navigate('/map', { 
+        state: { 
+          lat: coords.lat, 
+          lng: coords.lon,
+          label: coords.label || 'Ubicación seleccionada'
+        } 
+      });
+    }
+  };
+
+  const handleCloseError = () => {
+    setError(null);
+    setAdvancedFilters(null);
+  };
+
   return (
     <>
+      <LoadingModal 
+        isOpen={loading} 
+        error={null}
+      />
+      
+      {error && !loading && (
+        <div className="explorer-error-overlay" onClick={handleCloseError}>
+          <div className="explorer-error-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="explorer-error-icon">⚠️</div>
+            <h3>Sin resultados</h3>
+            <p>{error}</p>
+            <button className="explorer-error-btn" onClick={handleCloseError}>
+              Intentar de nuevo
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div ref={globeEl} className="explorer-globe-canvas" />
 
       <header className="explorer-command-bar">
@@ -103,8 +152,6 @@ function Explorer() {
         </div>
 
         <div className="explorer-actions">
-          {loading && <span className="explorer-status">Consultando datos…</span>}
-          {error && <span className="explorer-status error">Error: {error}</span>}
           <Button
             onClick={() => navigate('/')}
             variant="primary"
@@ -125,7 +172,7 @@ function Explorer() {
           <Filter
             onChangeView={(v) => console.log('vista:', v)}
             onSearch={(q) => console.log('buscar:', q)}
-            onApplyCoordinates={(c) => console.log('coords:', c)}
+            onApplyCoordinates={handleApplyCoordinates}
             onApplyAdvancedFilters={handleApplyAdvancedFilters}
             showViewSection={false}
           />

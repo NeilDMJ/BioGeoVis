@@ -74,6 +74,76 @@ export const getSpeciesImageFromGBIF = async (scientificName, options = {}) => {
   }
 };
 
+// Wikimedia Commons API - Gran colección de imágenes de especies
+export const getSpeciesImageFromWikimedia = async (scientificName, options = {}) => {
+  const { signal } = options;
+  try {
+    // Buscar en Wikimedia Commons usando la API de MediaWiki
+    const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(scientificName)}&srnamespace=6&srlimit=1&format=json&origin=*`;
+    const searchResponse = await fetch(searchUrl, { signal });
+    const searchData = await searchResponse.json();
+    
+    if (searchData.query?.search?.length > 0) {
+      const fileName = searchData.query.search[0].title;
+      // Obtener la URL de la imagen
+      const imageInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url|extmetadata&format=json&origin=*`;
+      const imageResponse = await fetch(imageInfoUrl, { signal });
+      const imageData = await imageResponse.json();
+      
+      const pages = imageData.query?.pages;
+      if (pages) {
+        const page = Object.values(pages)[0];
+        const imageInfo = page?.imageinfo?.[0];
+        if (imageInfo?.url) {
+          return {
+            imageUrl: imageInfo.url,
+            source: 'Wikimedia Commons',
+            license: imageInfo.extmetadata?.LicenseShortName?.value || 'CC',
+            creator: imageInfo.extmetadata?.Artist?.value?.replace(/<[^>]*>/g, '') || null
+          };
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    return handleAbortableError(error, 'Wikimedia');
+  }
+};
+
+// Encyclopedia of Life (EOL) API
+export const getSpeciesImageFromEOL = async (scientificName, options = {}) => {
+  const { signal } = options;
+  try {
+    // Primero buscar el ID de la especie
+    const searchUrl = `https://eol.org/api/search/1.0.json?q=${encodeURIComponent(scientificName)}&page=1&exact=true`;
+    const searchResponse = await fetch(searchUrl, { signal });
+    const searchData = await searchResponse.json();
+    
+    if (searchData.results?.length > 0) {
+      const eolId = searchData.results[0].id;
+      // Obtener información detallada con imágenes
+      const pageUrl = `https://eol.org/api/pages/1.0/${eolId}.json?images_per_page=1&details=true`;
+      const pageResponse = await fetch(pageUrl, { signal });
+      const pageData = await pageResponse.json();
+      
+      if (pageData.dataObjects?.length > 0) {
+        const imageObj = pageData.dataObjects.find(obj => obj.mediaURL);
+        if (imageObj) {
+          return {
+            imageUrl: imageObj.mediaURL || imageObj.eolMediaURL,
+            source: 'Encyclopedia of Life',
+            license: imageObj.license || 'CC',
+            creator: imageObj.agents?.find(a => a.role === 'photographer')?.full_name || null
+          };
+        }
+      }
+    }
+    return null;
+  } catch (error) {
+    return handleAbortableError(error, 'EOL');
+  }
+};
+
 
 // Función principal con fallback (intenta múltiples fuentes)
 export const getSpeciesImage = async (scientificName, options = {}) => {
@@ -92,6 +162,20 @@ export const getSpeciesImage = async (scientificName, options = {}) => {
   
   // Fallback a GBIF
   result = await getSpeciesImageFromGBIF(scientificName, options);
+  if (result?.imageUrl) {
+    if (cacheKey) IMAGE_CACHE.set(cacheKey, result);
+    return result;
+  }
+
+  // Fallback a Wikimedia Commons
+  result = await getSpeciesImageFromWikimedia(scientificName, options);
+  if (result?.imageUrl) {
+    if (cacheKey) IMAGE_CACHE.set(cacheKey, result);
+    return result;
+  }
+
+  // Fallback a Encyclopedia of Life
+  result = await getSpeciesImageFromEOL(scientificName, options);
   if (result?.imageUrl) {
     if (cacheKey) IMAGE_CACHE.set(cacheKey, result);
     return result;

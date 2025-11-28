@@ -8,6 +8,11 @@
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
+  
+  /* Duración de transiciones globales */
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --transition-slow: 400ms;
 }
 
 /* Reset básico */
@@ -17,12 +22,48 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Scroll suave en toda la página */
+  scroll-behavior: smooth;
+  /* Prevenir zoom */
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-primary);
   color: var(--color-text-primary);
+  /* Optimización de rendimiento */
+  text-rendering: optimizeLegibility;
+  /* Prevenir selección accidental durante transiciones */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Optimización global de transiciones */
+a, button, input, select, textarea {
+  transition: all var(--transition-fast) ease-out;
+}
+
+/* Mejora de rendimiento para animaciones */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Respetar preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 code {

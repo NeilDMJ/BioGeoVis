@@ -183,6 +183,49 @@
   font-size: 0.95rem;
 }
 
+/* Botón Leer más */
+.species-card__read-more {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.species-card__read-more:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.species-card__read-more:active {
+  transform: translateY(0);
+}
+
+.read-more-icon {
+  font-size: 16px;
+}
+
+.read-more-arrow {
+  font-size: 16px;
+  transition: transform 0.2s ease;
+}
+
+.species-card__read-more:hover .read-more-arrow {
+  transform: translateX(4px);
+}
+
 @media (max-width: 768px) {
   .species-card {
     width: min(360px, calc(100vw - 32px));
