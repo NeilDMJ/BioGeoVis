@@ -170,6 +170,7 @@ function matchTaxonomia(doc, { reino, filo, clase, orden, familia, genero, espec
 // Funcion principal para obtener avistamientos según filtros avanzados.
 export async function fetchAvistamientosAdvanced(filters) {
   const {
+    nombreComun,
     nombreCientifico,
     especie,
     reino,
@@ -188,8 +189,26 @@ export async function fetchAvistamientosAdvanced(filters) {
 
   const hasTax = [reino, filoValue, clase, orden, familia, genero, especie].some(v => v && v.trim());
   const hasDateRange = fechaInicio && fechaFin;
+  const hasNombreComun = nombreComun && nombreComun.trim();
 
   let data = [];
+
+  // Priorizar búsqueda por nombre común si está presente
+  if (hasNombreComun) {
+    try {
+      data = await apiGet(`/api/avistamientos/nombre_comun/${encodeURIComponent(nombreComun.trim())}`);
+      // Si también hay filtros taxonómicos, aplicar en cliente
+      if (hasTax) {
+        data = data.filter(d => matchTaxonomia(d, { reino, filo: filoValue, clase, orden, familia, genero, especie }));
+      }
+      const markers = data.map(toMarker).filter(Boolean);
+      console.debug('[API] Nombre común - Avistamientos recibidos:', data.length, 'Marcadores válidos:', markers.length);
+      return { raw: data, markers };
+    } catch (e) {
+      console.error('Error fetching by nombre común:', e);
+      throw e;
+    }
+  }
 
   if (hasDateRange && hasTax) {
     // Estrategia: primero fecha para reducir volumen y luego filtrar taxonomía en cliente.

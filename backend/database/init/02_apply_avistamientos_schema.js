@@ -35,6 +35,7 @@ const avistamientosSchema = {
         },
         FechaEvento: { bsonType: "date", description: "Fecha del avistamiento" },
         NombreCientifico: { bsonType: "string" },
+        NombreComun: { bsonType: "string", description: "Nombre común/vernáculo de la especie" },
     },
 };
 

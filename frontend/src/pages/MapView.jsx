@@ -239,9 +239,6 @@ function MapView() {
           <Button variant="outline-light" size="sm" onClick={() => navigate('/explorer')}>
             Volver al Explorador
           </Button>
-          <Button as={Link} to="/about" size="sm" variant="primary">
-            Acerca de Nosotros
-          </Button>
         </div>
       </header>
 

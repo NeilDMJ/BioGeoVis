@@ -113,14 +113,6 @@ function Explorer() {
           >
             Volver al inicio
           </Button>
-          <Button
-            onClick={() => navigate('/map')}
-            variant="outline-light"
-            size="sm"
-            className="explorer-secondary-btn"
-          >
-            Ir al mapa
-          </Button>
         </div>
       </header>
 

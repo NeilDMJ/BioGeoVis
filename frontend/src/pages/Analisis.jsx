@@ -234,10 +234,10 @@ const Analisis = () => {
                     <section id="hero" data-section="hero" className="analisis-hero scroll-animate">
                         <div className="analisis-title">
                             <p className="analisis-eyebrow">Insights derivados de Explorer</p>
-                            <h1>Analytics</h1>
+                            <h1>Analisis gráfico</h1>
                             <p>Explora cómo se comportan los resultados filtrados por diferentes dimensiones taxonómicas.</p>
                             <ul className="hero-prompts">
-                                <li>1. Revisa los KPIs para validar que analizas la cohorte correcta.</li>
+                                <li>1. Revisa las gráficas para validar que analizas la información correcta.</li>
                                 <li>2. Cambia la dimensión principal y observa cómo se reorganizan las gráficas.</li>
                                 <li>3. Usa "Ver detalles" para saltar al Explorer con filtros ya aplicados.</li>
                             </ul>

@@ -7,7 +7,7 @@ const NAV_LINKS = [
     { id: 'home', label: 'Inicio', to: '/home' },
     { id: 'explorer', label: 'Explorer', to: '/explorer' },
     { id: 'dashboard', label: 'Dashboard', to: '/dashboard' },
-    { id: 'analisis', label: 'Analytics', to: '/analisis' }
+    { id: 'analisis', label: 'Analisis', to: '/analisis' }
 ];
 
 const ROLE_OPTIONS = [
@@ -243,14 +243,9 @@ const Register = () => {
                         </ol>
                         <div className="register-support__contact">
                             <p>¿Necesitas acelerar la revisión?</p>
-                            <a href="mailto:onboarding@biogeovis.com">onboarding@biogeovis.com</a>
+                            <a href="mailto:biogeovis@gmail.com">biogeovis@gmail.com</a>
                         </div>
-                        <div className="register-support__card">
-                            <p>También puedes agendar una videollamada de inducción.</p>
-                            <Button as={Link} to="/about" size="sm" variant="outline-light">
-                                Ver próximos talleres
-                            </Button>
-                        </div>
+
                     </aside>
                 </section>
 

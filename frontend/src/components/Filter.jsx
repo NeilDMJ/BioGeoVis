@@ -35,6 +35,7 @@ export default function Filter({
   const [coords, setCoords] = useState({ lat: "", lon: "" });
   const [open, setOpen] = useState(false);
   const [adv, setAdv] = useState({
+    nombreComun: "",
     nombreCientifico: "",
     especie: "",
     reino: "",
@@ -55,6 +56,8 @@ export default function Filter({
   const taxonomyFilters = useMemo(
     () =>
       TAXONOMY_KEYS.reduce((acc, key) => {
+        // No incluir nombreComun en los filtros de taxonomía porque es texto libre
+        if (key === "nombreComun") return acc;
         acc[key] = adv[key];
         return acc;
       }, {}),
@@ -69,11 +72,15 @@ export default function Filter({
   }, [initialView]);
 
 
+  // Solo resetear los campos SELECT cuando sus opciones cambian
+  // nombreComun es texto libre, no debe resetearse
+  const selectKeys = useMemo(() => TAXONOMY_SELECTS.map(s => s.key), []);
+  
   useEffect(() => {
     setAdv((prev) => {
       let next = prev;
       let changed = false;
-      TAXONOMY_KEYS.forEach((key) => {
+      selectKeys.forEach((key) => {
         const current = prev[key];
         if (!current) return;
         const available = taxonomyOptions[key] || [];
@@ -89,7 +96,7 @@ export default function Filter({
       });
       return changed ? next : prev;
     });
-  }, [taxonomyOptions]);
+  }, [taxonomyOptions, selectKeys]);
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -200,8 +207,8 @@ export default function Filter({
             <form onSubmit={applyAdv}>
               <div className="grid-2">
                 {[
+                  ["nombreComun", "Nombre común", "Ej. Jaguar, Águila..."],
                   ["nombreCientifico", "Nombre científico", "Ej. Panthera onca"],
-                  ["especie", "Especie", "Ej. Panthera onca"],
                 ].map(([k, label, ph]) => (
                   <div className="field" key={k}>
                     <label>{label}</label>

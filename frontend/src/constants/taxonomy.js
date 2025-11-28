@@ -1,4 +1,5 @@
 export const TAXONOMY_KEYS = [
+  "nombreComun",
   "reino",
   "filo",
   "clase",
@@ -9,6 +10,7 @@ export const TAXONOMY_KEYS = [
   "pais",
 ];
 
+// Solo los campos que aparecen como SELECT dropdown (no nombreComun que es input de texto)
 export const TAXONOMY_SELECTS = [
   { key: "reino", label: "Reino", placeholder: "Todos los reinos" },
   { key: "filo", label: "Filo", placeholder: "Filtrar por filo" },

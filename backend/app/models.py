@@ -36,10 +36,12 @@ class Avistamiento(BaseModel):
     Ubicacion: Ubicacion
     FechaEvento: datetime
     NombreCientifico: str
+    NombreComun: Optional[str] = None
 
 
 class AnalyticsFilters(BaseModel):
     nombreCientifico: Optional[str] = None
+    nombreComun: Optional[str] = None
     especie: Optional[str] = None
     reino: Optional[str] = None
     filo: Optional[str] = None

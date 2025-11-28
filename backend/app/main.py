@@ -33,6 +33,7 @@ def _regex_exact(value: str) -> Dict[str, Any]:
 
 
 TAXONOMY_FIELD_MAP = [
+    ("nombreComun", "NombreComun"),
     ("reino", "Taxonomia.Reino"),
     ("filo", "Taxonomia.Filo"),
     ("clase", "Taxonomia.Clase"),
@@ -131,6 +132,8 @@ def _ensure_indexes():
     try:
         db.avistamientos.create_index("FechaEvento")
         db.avistamientos.create_index("NombreCientifico")
+        db.avistamientos.create_index("NombreComun")
+        db.avistamientos.create_index([("NombreComun", 1), ("NombreCientifico", 1)])
         db.avistamientos.create_index("Ubicacion.Pais")
         db.avistamientos.create_index("Ubicacion.Latitud")
         db.avistamientos.create_index("Ubicacion.Longitud")
@@ -194,6 +197,30 @@ def get_avistamientos_by_nombre_cientifico(nombre_cientifico: str):
     for avistamiento in avistamientos:
         avistamiento["_id"] = str(avistamiento["_id"])
     return avistamientos
+
+
+@app.get("/api/avistamientos/nombre_comun/{nombre_comun}")
+def get_avistamientos_by_nombre_comun(nombre_comun: str, limit: int = 1000):
+    """
+    Obtener avistamientos por nombre común (case-insensitive, búsqueda parcial).
+    Ejemplo: /api/avistamientos/nombre_comun/jaguar
+    """
+    try:
+        normalized = _normalize_option(nombre_comun)
+        if not normalized:
+            raise HTTPException(status_code=400, detail="Nombre común requerido")
+        
+        # Búsqueda case-insensitive con regex
+        query = {"NombreComun": {"$regex": normalized, "$options": "i"}}
+        avistamientos = list(db.avistamientos.find(query).limit(limit))
+        
+        for avistamiento in avistamientos:
+            avistamiento["_id"] = str(avistamiento["_id"])
+        return avistamientos
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo avistamientos por nombre común: {e}")
 
 @app.get("/api/avistamientos/fecha/{desde}/{hasta}")
 def get_avistamientos_by_fecha(desde: str, hasta: str, limit: int = 1000):
@@ -399,6 +426,7 @@ def get_avistamientos_by_ubicacion(lat: float, lng: float, tolerancia: float = 0
 
 @app.get("/api/metadata/taxonomia/opciones")
 def get_taxonomia_options(
+    nombreComun: Optional[str] = None,
     reino: Optional[str] = None,
     filo: Optional[str] = None,
     clase: Optional[str] = None,
@@ -411,6 +439,7 @@ def get_taxonomia_options(
     """Devuelve las listas de opciones filtradas mediante un único $facet."""
     try:
         filters = {
+            "nombreComun": nombreComun,
             "reino": reino,
             "filo": filo,
             "clase": clase,

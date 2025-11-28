@@ -122,6 +122,11 @@ function SpeciesInfoCard({ species, onClose }) {
         <div className="species-card__content">
           <p className="species-card__eyebrow">Especie registrada</p>
           <h3 className="species-card__title">{info.scientificName || species.label || 'Especie sin nombre'}</h3>
+          {info.commonName && (
+            <p className="species-card__common-name">
+              <span className="species-card__common-name-label">Nombre común:</span> {info.commonName}
+            </p>
+          )}
           <div className="species-card__taxonomy">
             {taxonomyRows.map(({ label, value }) => (
               <div key={label} className="species-card__taxonomy-row">

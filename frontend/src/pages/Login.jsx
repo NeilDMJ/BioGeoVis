@@ -191,13 +191,12 @@ const Login = () => {
                         <p className="eyebrow">¿Necesitas acceso?</p>
                         <h3>Solicita tu cuenta institucional.</h3>
                         <p>
-                            Completa el formulario de registro para que el equipo valide tu pertenencia a la red de investigación.
+                            Completa el formulario de registro para que el equipo valide la información.
                             Te pediremos correo institucional, área de estudio y objetivo de uso para habilitar tu perfil.
                         </p>
                         <ol>
-                            <li>Envía la solicitud con tus datos académicos.</li>
-                            <li>Confirma el correo de verificación que recibirás en minutos.</li>
-                            <li>Activa tu cuenta y vuelve aquí para iniciar sesión.</li>
+                            <li>Envía la solicitud con tus datos académicos y inmediatamente activamos tu acceso.</li>
+
                         </ol>
                     </div>
                     <div className="login-register__cta">

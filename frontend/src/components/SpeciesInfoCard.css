@@ -116,6 +116,24 @@
   color: #0f172a;
 }
 
+.species-card__common-name {
+  margin: 0;
+  font-size: 1rem;
+  color: #5682B1;
+  font-style: italic;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(86, 130, 177, 0.08) 0%, rgba(86, 130, 177, 0.15) 100%);
+  border-radius: 8px;
+  border-left: 3px solid #5682B1;
+}
+
+.species-card__common-name-label {
+  font-style: normal;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.85rem;
+}
+
 .species-card__taxonomy {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
