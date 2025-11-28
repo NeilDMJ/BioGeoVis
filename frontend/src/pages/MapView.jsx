@@ -321,7 +321,7 @@ function MapView() {
                   </button>
                 ))}
               </div>
-              <div className="panel-hint">Tip: alterna entre vistas de mapas segun tu elección.</div>
+              <div className="panel-hint">Tip: Alterna entre vistas de mapas según tu elección.</div>
             </>
           )}
         </section>

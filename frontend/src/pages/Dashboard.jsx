@@ -232,8 +232,8 @@ const Dashboard = () => {
                 <nav className="home__nav-links">
                     <Link to="/home" className="home__nav-link external">Inicio</Link>
                     <Link to="/explorer" className="home__nav-link external">Explorer</Link>
-                    <Link to="/analisis" className="home__nav-link external">Analisis</Link>
-                    <Link to="/map" className="home__nav-link external">Ir al Mapa  </Link>
+                    <Link to="/analisis" className="home__nav-link external">Análisis</Link>
+                    <Link to="/map" className="home__nav-link external">Ir al Mapa</Link>
                     <Link to="/about" className="home__nav-link external">Acerca de Nosotros</Link>
                     <UserNavMenu />
                 </nav>

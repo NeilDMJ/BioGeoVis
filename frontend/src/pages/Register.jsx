@@ -21,7 +21,7 @@ const NAV_LINKS = [
     { id: 'home', label: 'Inicio', to: '/home' },
     { id: 'explorer', label: 'Explorer', to: '/explorer' },
     { id: 'dashboard', label: 'Dashboard', to: '/dashboard' },
-    { id: 'analisis', label: 'Analisis', to: '/analisis' }
+    { id: 'analisis', label: 'Análisis', to: '/analisis' }
 ];
 
 const ROLE_OPTIONS = [

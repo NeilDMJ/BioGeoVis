@@ -7,7 +7,7 @@ export const TILE_PROVIDERS = {
     attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
   },
   osm: {
-    name: 'Mapa Estandar  ',
+    name: 'Mapa Estándar',
     url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
   },
@@ -22,7 +22,7 @@ export const TILE_PROVIDERS = {
     attribution: 'Tiles &copy; Esri'
   },
   cartoDark: {
-    name: 'Mapa monocromatico',
+    name: 'Mapa monocromático',
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>'
   }

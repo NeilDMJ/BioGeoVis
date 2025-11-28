@@ -235,7 +235,7 @@ const Analisis = () => {
                     <section id="hero" data-section="hero" className="analisis-hero scroll-animate">
                         <div className="analisis-title">
                             <p className="analisis-eyebrow">Insights derivados de Explorer</p>
-                            <h1>Analisis gráfico</h1>
+                            <h1>Análisis gráfico</h1>
                             <p>Explora cómo se comportan los resultados filtrados por diferentes dimensiones taxonómicas.</p>
                             <ul className="hero-prompts">
                                 <li>1. Revisa las gráficas para validar que analizas la información correcta.</li>
