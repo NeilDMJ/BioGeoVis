@@ -157,7 +157,6 @@ function SpeciesDetail() {
       {/* Header con navegación */}
       <header className="species-detail-header">
         <button className="back-btn" onClick={handleGoBack}>
-          <span className="back-icon">{Icons.arrowLeft}</span>
           <span>Regresar</span>
         </button>
         <div className="header-title">

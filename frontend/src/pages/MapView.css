@@ -16,10 +16,10 @@
   top: 0;
   left: 0;
   right: 0;
-  padding: 0.85rem 2rem;
+  padding: 0.6rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   background: linear-gradient(90deg, rgba(8, 20, 40, 0.9), rgba(8, 20, 40, 0.4));
   backdrop-filter: blur(10px);
   z-index: 5;
@@ -27,22 +27,22 @@
 
 .mapview__logo {
   font-weight: 700;
-  font-size: 30px;
+  font-size: 1.5rem;
   letter-spacing: 0.08em;
 }
 
 .mapview__nav-links {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.3rem;
   flex: 1;
   flex-wrap: wrap;
 }
 
 .mapview__nav-link {
-  padding: 0.35rem 0.9rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 20px;
+  font-size: 0.95rem;
   color: #dbe5ff;
   text-decoration: none;
   background: transparent;
@@ -57,14 +57,17 @@
 
 .mapview__nav-actions {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
 }
-
+.mapview__panel-toggle-row .eyebrow{
+  font-size: small;
+  font-weight: 500;
+}
 .mapview__nav-actions a {
-  font-size: 18px;
+  font-size: 0.9rem;
   background: linear-gradient(135deg, #5ea6ff, #2a6deb);
   border-radius: 999px !important;
-  padding: 0.95rem 1.8rem;
+  padding: 0.6rem 1.2rem;
   font-weight: 600;
   border: none;
 }
@@ -74,10 +77,10 @@
 }
 
 .mapview__nav-actions button {
-  font-size: 18px;
+  font-size: 0.4rem;
   background: transparent;
   border-radius: 999px !important;
-  padding: 0.95rem 1.8rem;
+  padding: 0.6rem 1.2rem;
   font-weight: 600;
   border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
@@ -88,21 +91,21 @@
 
 .mapview__panels {
   position: fixed;
-  top: 6rem;
-  right: 1.5rem;
-  width: min(300px, 95vw);
-  max-height: calc(100vh - 6.5rem);
+  top: 6.5rem;
+  right: 1rem;
+  width: min(260px, 90vw);
+  max-height: calc(100vh - 5rem);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
   z-index: 4;
   overflow-y: auto;
-  padding-bottom: 1rem;
+  padding-bottom: 0.75rem;
   scrollbar-width: thin;
 }
 
 .mapview__panels::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .mapview__panels::-webkit-scrollbar-thumb {
@@ -112,15 +115,15 @@
 
 .mapview__panel {
   background: rgba(10, 24, 46, 0.78);
-  border-radius: 24px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1rem;
+  padding: 0.85rem;
   box-shadow: 0 20px 60px rgba(2, 8, 20, 0.45);
 }
 
 .mapview__panel-head h2 {
-  font-size: 1.2rem;
-  margin: 0.25rem 0 0.35rem;
+  font-size: 1rem;
+  margin: 0.2rem 0 0.3rem;
 }
 
 .eyebrow {
@@ -190,51 +193,54 @@
 
 .status-card {
   background: rgba(16, 34, 66, 0.85);
-  border-radius: 18px;
-  padding: 1rem;
+  border-radius: 14px;
+  padding: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .status-card h3 {
-  margin: 0 0 0.5rem;
-  font-size: 0.95rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
 }
 
 .status-card span {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: #9fb6e6;
 }
 
 .status-count {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin: 0.25rem 0;
+  margin: 0.2rem 0;
 }
 
 .mapview__floating {
   position: fixed;
-  bottom: 1.25rem;
-  left: 1.25rem;
+  top: 4.5rem;
+  left: 1rem;
+  bottom: auto;
   z-index: 6;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  width: min(420px, 94vw);
+  gap: 0.35rem;
+  width: min(350px, 90vw);
+  max-height: calc(100vh - 5rem);
+  overflow-y: auto;
   align-items: flex-start;
 }
 
 .mapview__floating-card {
   width: 100%;
   background: rgba(5, 13, 28, 0.75);
-  border-radius: 26px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 1rem;
+  padding: 0.85rem;
   box-shadow: 0 20px 50px rgba(3, 10, 24, 0.45);
   backdrop-filter: blur(10px);
 }
 
 .mapview__floating-head {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .mapview__floating-head p {

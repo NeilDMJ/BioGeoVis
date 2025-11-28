@@ -33,21 +33,21 @@
 
 .home__nav {
   position: fixed;
-  height: 75px;
+  height: 55px;
   top: 0;
   left: 0;
   right: 0;
-  padding: 1rem 2rem;
+  padding: 0.6rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
   background: linear-gradient(90deg, var(--nav-bg), rgba(8, 20, 40, 0.3));
   backdrop-filter: blur(8px);
   z-index: 5;
 }
 
 .home__logo {
-  font-size: 30px;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
@@ -55,17 +55,17 @@
 .home__nav-links {
   display: flex;
   flex: 1;
-  gap: 0.6rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
 .home__nav-link {
-  padding: 0.35rem 0.9rem;
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
   text-decoration: none;
   color: var(--text-soft);
   font-weight: 600;
-  font-size: 20px;
+  font-size: 0.95rem;
   transition: background 0.2s, color 0.2s;
 }
 
@@ -77,15 +77,15 @@
 }
 
 .home__nav-link.external::after {
-  font-size: 0.75rem;
-  margin-left: 0.25rem;
+  font-size: 0.7rem;
+  margin-left: 0.2rem;
 }
 
 .home__nav-cta {
   border-radius: 999px;
-  padding-inline: 1.25rem;
+  padding-inline: 1rem;
   font-weight: 600;
-  font-size: 20px;
+  font-size: 0.95rem;
   background: linear-gradient(135deg, #4a98ff, var(--accent));
   border: none;
 }
@@ -93,10 +93,10 @@
 .home__content {
   position: relative;
   z-index: 2;
-  padding: 8rem 6vw 4rem;
+  padding: 5rem 4vw 3rem;
   display: flex;
   flex-direction: column;
-  gap: 4rem;
+  gap: 3rem;
 }
 
 .hero {

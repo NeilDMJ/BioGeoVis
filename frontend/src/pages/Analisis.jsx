@@ -293,7 +293,7 @@ const Analisis = () => {
                                         <div>
                                             <h2>{chart.title}</h2>
                                             <p>{chart.subtitle}</p>
-                                            <span className="microcopy">Tip: cada gráfico se autocompleta cuando los filtros cambian; evita recargar manualmente.</span>
+                                            
                                         </div>
                                         <button type="button" className="ghost-button" onClick={() => handleViewDetails(chart)}>
                                             Ver detalles

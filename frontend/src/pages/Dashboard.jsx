@@ -300,9 +300,9 @@ const Dashboard = () => {
                         <article className="dashboard-chart">
                             <div className="dashboard-chart__header">
                                 <div>
-                                    <h3>Top taxonómico</h3>
-                                    <p>Ranking derivado de los filtros activos</p>
-                                    <span className="microcopy">Se actualiza cuando cambias filtros o vista.</span>
+                                    <h3>Familias más avistadas</h3>
+                                    <p>Las familias de especies con más registros</p>
+                                   
                                 </div>
                             </div>
                             {renderBarChart(analyticsData?.dimensionRanking, '#739EC9')}
@@ -310,9 +310,9 @@ const Dashboard = () => {
                         <article className="dashboard-chart">
                             <div className="dashboard-chart__header">
                                 <div>
-                                    <h3>Distribución temporal</h3>
-                                    <p>Histórico de registros agregados</p>
-                                    <span className="microcopy">Ideal para validar si debes activar alertas de anomalías.</span>
+                                    <h3>Avistamientos por año</h3>
+                                    <p>Evolución histórica de los registros</p>
+                                    
                                 </div>
                             </div>
                             {renderLineChart(analyticsData?.temporalSeries, '#FFE8DB')}
@@ -320,9 +320,9 @@ const Dashboard = () => {
                         <article className="dashboard-chart">
                             <div className="dashboard-chart__header">
                                 <div>
-                                    <h3>Fauna por categoría</h3>
-                                    <p>Clasificación de la muestra actual</p>
-                                    <span className="microcopy">Observa saltos bruscos para abrir Analytics y profundizar.</span>
+                                    <h3>Tipos de especies</h3>
+                                    <p>Distribución por clase (Aves, Insectos, etc.)</p>
+                                    
                                 </div>
                             </div>
                             {renderBarChart(analyticsData?.faunaBreakdown, '#51cf66')}
