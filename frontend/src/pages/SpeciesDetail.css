@@ -42,7 +42,7 @@
 }
 
 .back-icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .header-title {
@@ -58,7 +58,6 @@
   color: #34d399;
   font-size: 25px;
   font-weight: 600;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
