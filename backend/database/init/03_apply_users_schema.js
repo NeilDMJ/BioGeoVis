@@ -5,12 +5,12 @@
     // Esquema embebido para 'users' (eliminamos dependencias de archivos externos)
     var usersSchema = {
         bsonType: "object",
-        required: ["username", "email", "password", "firstName", "lastName"],
+        required: ["username", "email", "hashed_password", "firstName", "lastName"],
         properties: {
             username: {
                 bsonType: "string",
-                description: "el campo 'username' es obligatorio y debe ser una cadena entre 5 y 20 caracteres",
-                minLength: 5,
+                description: "el campo 'username' es obligatorio y debe ser una cadena entre 3 y 20 caracteres",
+                minLength: 3,
                 maxLength: 20,
             },
             email: {
@@ -18,10 +18,10 @@
                 description: "el campo 'email' es obligatorio y debe ser una cadena en formato de correo electrónico",
                 pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
             },
-            password: {
+            hashed_password: {
                 bsonType: "string",
-                description: "el campo 'password' es obligatorio y debe ser una cadena con una longitud mínima de 8",
-                minLength: 8,
+                description: "el campo 'hashed_password' es obligatorio y debe ser una cadena (contraseña hasheada con bcrypt)",
+                minLength: 20,
             },
             firstName: {
                 bsonType: "string",
@@ -43,6 +43,10 @@
             registrationDate: {
                 bsonType: ["date", "null"],
                 description: "el campo 'registrationDate' es opcional y debe ser una fecha o null",
+            },
+            isActive: {
+                bsonType: ["bool", "null"],
+                description: "el campo 'isActive' es opcional y debe ser un booleano",
             },
             photo: {
                 bsonType: ["string", "null"],
@@ -76,9 +80,10 @@
     const _initDoc = {
         username: "__init_user__",
         email: "init@example.com",
-        password: "password123",
+        hashed_password: "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.OYQa/",
         firstName: "Init",
-        lastName: "User"
+        lastName: "User",
+        isActive: true
     };
     targetDb[collName].insertOne(_initDoc);
     targetDb[collName].deleteOne({ username: _initDoc.username });
