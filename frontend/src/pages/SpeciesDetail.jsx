@@ -241,7 +241,7 @@ function SpeciesDetail() {
                     Descripción
                   </h2>
                   <p className="card-text">
-                    {detailedInfo?.descripcion || 'Información no disponible para esta especie.'}
+                    {detailedInfo?.Descripcion || 'Información no disponible para esta especie.'}
                   </p>
                 </div>
 
@@ -252,7 +252,7 @@ function SpeciesDetail() {
                       Alimentación
                     </h3>
                     <p className="card-text-sm">
-                      {detailedInfo?.alimentacion || 'Información no disponible'}
+                      {detailedInfo?.Alimentacion || 'Información no disponible'}
                     </p>
                   </div>
                   
@@ -297,7 +297,7 @@ function SpeciesDetail() {
                     Hábitat Natural
                   </h2>
                   <p className="card-text">
-                    {detailedInfo?.habitat || 'Información sobre el hábitat no disponible.'}
+                    {detailedInfo?.Habitat_natural || 'Información sobre el hábitat no disponible.'}
                   </p>
                 </div>
 
@@ -307,7 +307,7 @@ function SpeciesDetail() {
                     Distribución Geográfica
                   </h2>
                   <p className="card-text">
-                    {detailedInfo?.distribucion || 'Información sobre distribución no disponible.'}
+                    {detailedInfo?.Distribucion_geografica || 'Información sobre distribución no disponible.'}
                   </p>
                 </div>
 
@@ -317,7 +317,7 @@ function SpeciesDetail() {
                     Importancia Ecológica
                   </h2>
                   <p className="card-text">
-                    {detailedInfo?.importanciaEcologica || 'Información no disponible.'}
+                    {detailedInfo?.Importancia_ecologica || 'Información no disponible.'}
                   </p>
                 </div>
               </div>
@@ -332,7 +332,7 @@ function SpeciesDetail() {
                     Comportamiento
                   </h2>
                   <p className="card-text">
-                    {detailedInfo?.comportamiento || 'Información sobre comportamiento no disponible.'}
+                    {detailedInfo?.Comportamiento || 'Información sobre comportamiento no disponible.'}
                   </p>
                 </div>
 
@@ -342,7 +342,7 @@ function SpeciesDetail() {
                     Relación con Humanos
                   </h2>
                   <p className="card-text">
-                    {detailedInfo?.relacionConHumanos || 'Información no disponible.'}
+                    {detailedInfo?.Relacion_con_humanos || 'Información no disponible.'}
                   </p>
                 </div>
               </div>
@@ -358,7 +358,7 @@ function SpeciesDetail() {
                   </h2>
                   <div className="conservation-status">
                     <span className="status-badge">
-                      {detailedInfo?.estadoConservacion || 'Estado no determinado'}
+                      {detailedInfo?.Estado_de_conservacion || 'Estado no determinado'}
                     </span>
                   </div>
                 </div>
@@ -369,7 +369,7 @@ function SpeciesDetail() {
                     Amenazas
                   </h2>
                   <p className="card-text">
-                    {detailedInfo?.amenazas || 'Información sobre amenazas no disponible.'}
+                    {detailedInfo?.Amenazas || 'Información sobre amenazas no disponible.'}
                   </p>
                 </div>
               </div>
@@ -383,9 +383,9 @@ function SpeciesDetail() {
                     <span className="title-icon">{Icons.lightbulb}</span>
                     Datos Curiosos
                   </h2>
-                  {detailedInfo?.curiosidades?.length > 0 ? (
+                  {detailedInfo?.Curiosidades?.length > 0 ? (
                     <ul className="curiosities-list">
-                      {detailedInfo.curiosidades.map((item, index) => (
+                      {detailedInfo.Curiosidades.map((item, index) => (
                         <li key={index} className="curiosity-item">
                           <span className="curiosity-number">{index + 1}</span>
                           <span className="curiosity-text">{item}</span>

@@ -1,45 +1,36 @@
-// Servicio para obtener información detallada de especies usando Gemini AI
-// API Key de Gemini - En producción debería estar en variables de entorno del backend
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 const INFO_CACHE = new Map();
 
-/**
- * Genera un prompt estructurado para obtener información de una especie
- */
 const buildSpeciesPrompt = (scientificName, commonName, taxonomy) => {
-  const taxInfo = taxonomy ? `
-    Reino: ${taxonomy.kingdom || 'No especificado'}
-    Filo: ${taxonomy.phylum || 'No especificado'}
-    Clase: ${taxonomy.class || 'No especificado'}
-    Orden: ${taxonomy.order || 'No especificado'}
-    Familia: ${taxonomy.family || 'No especificado'}
-  ` : '';
+  return `En el contexto de la biología, genera información completa sobre la especie especificada: ${scientificName}${commonName ? ` (${commonName})` : ''}.
+La información debe presentarse en un lenguaje claro, común y comprensible para todo público.
 
-  return `Eres un biólogo experto en biodiversidad. Proporciona información detallada y educativa sobre la siguiente especie en formato JSON.
+El resultado debe ser EXCLUSIVAMENTE un objeto JSON, sin explicaciones ni texto adicional.
+Usa exactamente las siguientes claves dentro del objeto JSON:
 
-Especie: ${scientificName}
-${commonName ? `Nombre común: ${commonName}` : ''}
-${taxInfo}
-
-Responde ÚNICAMENTE con un objeto JSON válido (sin markdown, sin \`\`\`) con la siguiente estructura exacta:
 {
-  "descripcion": "Descripción general de la especie en 2-3 párrafos",
-  "habitat": "Descripción del hábitat natural donde vive",
-  "distribucion": "Distribución geográfica de la especie",
-  "alimentacion": "Dieta y hábitos alimenticios",
-  "comportamiento": "Comportamiento característico y hábitos",
-  "reproduccion": "Información sobre reproducción y ciclo de vida",
-  "estadoConservacion": "Estado de conservación (si aplica: en peligro, vulnerable, etc.)",
-  "curiosidades": ["Dato curioso 1", "Dato curioso 2", "Dato curioso 3", "Dato curioso 4", "Dato curioso 5"],
-  "importanciaEcologica": "Rol en el ecosistema y por qué es importante",
-  "amenazas": "Principales amenazas que enfrenta la especie",
-  "relacionConHumanos": "Interacción con humanos, usos, importancia cultural"
+  "nombre_cientifico": "${scientificName}",
+  "Descripcion": "",
+  "Alimentacion": "",
+  "reproduccion": "",
+  "Habitat_natural": "",
+  "Distribucion_geografica": "",
+  "Importancia_ecologica": "",
+  "Comportamiento": "",
+  "Relacion_con_humanos": "",
+  "Estado_de_conservacion": "",
+  "Amenazas": "",
+  "Curiosidades": [
+    "Primer dato curioso",
+    "Segundo dato curioso",
+    "Tercer dato curioso"
+  ]
 }
 
-Si no conoces algún dato específico, usa "Información no disponible" en lugar de inventar datos.`;
+Asegúrate de que el JSON sea válido, que todos los campos estén completos y que "Curiosidades" sea un arreglo de cadenas de texto.`;
 };
 
 /**
@@ -89,8 +80,8 @@ export const getSpeciesDetailedInfo = async (scientificName, commonName = null, 
     return {
       error: 'API de Gemini no configurada',
       fallback: true,
-      descripcion: `${scientificName} es una especie que pertenece al mundo natural. Para obtener información más detallada, se requiere configurar la API de Gemini.`,
-      curiosidades: [
+      Descripcion: `${scientificName} es una especie que pertenece al mundo natural. Para obtener información más detallada, se requiere configurar la API de Gemini.`,
+      Curiosidades: [
         'La biodiversidad es fundamental para el equilibrio de los ecosistemas',
         'Cada especie cumple un rol único en su hábitat',
         'La conservación de especies es vital para el futuro del planeta'
@@ -158,8 +149,8 @@ export const getSpeciesDetailedInfo = async (scientificName, commonName = null, 
     return {
       error: error.message || 'Error al obtener información',
       fallback: true,
-      descripcion: `${scientificName} es una especie que forma parte de la biodiversidad de nuestro planeta. Lamentablemente no pudimos obtener información detallada en este momento.`,
-      curiosidades: [
+      Descripcion: `${scientificName} es una especie que forma parte de la biodiversidad de nuestro planeta. Lamentablemente no pudimos obtener información detallada en este momento.`,
+      Curiosidades: [
         'La biodiversidad incluye millones de especies en todo el mundo',
         'Cada especie tiene adaptaciones únicas a su ambiente',
         'La investigación científica nos ayuda a conocer mejor las especies'
@@ -168,9 +159,6 @@ export const getSpeciesDetailedInfo = async (scientificName, commonName = null, 
   }
 };
 
-/**
- * Limpia el cache de información
- */
 export const clearInfoCache = () => {
   INFO_CACHE.clear();
 };
