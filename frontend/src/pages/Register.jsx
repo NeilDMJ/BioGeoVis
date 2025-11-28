@@ -386,7 +386,7 @@ const Register = () => {
                                     </Form.Control.Feedback>
                                 ) : (
                                     <Form.Text className="text-muted">
-                                        Edad entre 10 y 100 años
+                                        Edad entre 10 y 85 años
                                     </Form.Text>
                                 )}
                             </Form.Group>
