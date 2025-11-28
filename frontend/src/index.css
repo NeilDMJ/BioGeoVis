@@ -23,12 +23,27 @@
 }
 
 html {
+  /* Font-size base reducido para que todo se vea proporcional */
+  /* Esto hace que 1rem = ~13px en lugar de 16px */
+  font-size: clamp(12px, 0.85vw + 8px, 14px);
   /* Scroll suave en toda la página */
   scroll-behavior: smooth;
   /* Prevenir zoom */
   touch-action: pan-x pan-y;
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
+}
+
+@media (min-width: 1600px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; /* En móvil mantener tamaño normal */
+  }
 }
 
 body {

@@ -14,68 +14,68 @@
   min-height: 100vh;
   background: radial-gradient(circle at top, rgba(20, 34, 64, 0.7), #020409 60%);
   color: var(--color-text-primary);
-  padding: 0 0 80px;
+  padding: 0 0 60px;
 }
 
-.mapview__nav {
+.about-page .mapview__nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  padding: 0.85rem 2rem;
+  padding: 0.6rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   background: linear-gradient(90deg, rgba(8, 20, 40, 0.9), rgba(8, 20, 40, 0.4));
   backdrop-filter: blur(10px);
   z-index: 5;
 }
 
-.mapview__logo {
+.about-page .mapview__logo {
   font-weight: 700;
-  font-size:30px;
+  font-size: 1.5rem;
   letter-spacing: 0.04em;
   color: #F5F8FF;
 }
 
-.mapview__nav-links {
+.about-page .mapview__nav-links {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.3rem;
   flex: 1;
   flex-wrap: wrap;
 }
 
-.mapview__nav-link {
-  padding: 0.35rem 0.9rem;
+.about-page .mapview__nav-link {
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 20px;
+  font-size: 0.95rem;
   color: #dbe5ff;
   text-decoration: none;
   background: transparent;
 }
 
-.mapview__nav-link:hover,
-.mapview__nav-link:focus-visible,
-.mapview__nav-link.is-active {
+.about-page .mapview__nav-link:hover,
+.about-page .mapview__nav-link:focus-visible,
+.about-page .mapview__nav-link.is-active {
   background: rgba(94, 166, 255, 0.18);
   color: #fff;
 }
 
-.mapview__nav-actions {
+.about-page .mapview__nav-actions {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
 }
-.mapview__nav-actions a{
-    font-size: 18px;
+.about-page .mapview__nav-actions a{
+    font-size: 0.9rem;
     background: linear-gradient(135deg, #5ea6ff, #2a6deb);
     border-radius: 999px !important;
-    padding: 0.95rem 1.8rem;
+    padding: 0.6rem 1.2rem;
     font-weight: 600;
     border: none;
 }
-.mapview__nav-actions a:hover
-.mapview__nav-actions a:focus-visible{
+.about-page .mapview__nav-actions a:hover
+.about-page .mapview__nav-actions a:focus-visible{
      background: linear-gradient(135deg, #5ea6ff, #2a6deb);
 }
 

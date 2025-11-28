@@ -8,14 +8,14 @@
 
 .explorer-command-bar {
    position: fixed;
-  height: 75px;
+  height: 55px;
   top: 0;
   left: 0;
   right: 0;
-  padding: 1rem 2rem;
+  padding: 0.6rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
   background: linear-gradient(90deg, var(--nav-bg), rgba(8, 20, 40, 0.3));
   backdrop-filter: blur(8px);
   z-index: 5;
@@ -26,7 +26,7 @@
   align-items: center;
   font-weight: 600;
   color: #d5e6ff;
-  font-size: 25px;
+  font-size: 1.4rem;
   letter-spacing: 0.02em;
 }
 
@@ -39,7 +39,7 @@
 
 .explorer-hints p {
   margin: 0;
-  font-size: 15px;
+  font-size: 0.85rem;
   font-weight: 400;
   color: #d5e6ff;
 }
@@ -48,12 +48,12 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .explorer-status {
-  font-size: 0.78rem;
-  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
   border-radius: 999px;
   background: rgba(52, 167, 94, 0.2);
   color: #9ef1bf;
@@ -65,10 +65,10 @@
 }
 
 .explorer-primary-btn {
-    font-size: 18px;
+    font-size: 0.95rem;
     background: linear-gradient(135deg, #5ea6ff, #2a6deb);
     border-radius: 999px !important;
-    padding: 0.95rem 1.8rem;
+    padding: 0.65rem 1.4rem;
     font-weight: 600;
     border: none;
 }
