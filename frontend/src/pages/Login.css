@@ -16,49 +16,48 @@
 }
 
 .home__nav.about__nav.login__nav {
-    position: sticky;
+    position: fixed;
+    height: 55px;
     top: 0;
-    width: 100%;
-    padding: 24px 4vw;
+    left: 0;
+    right: 0;
+    padding: 0.6rem 1.5rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 1.5rem;
-    background: linear-gradient(90deg, rgba(3, 7, 18, 0.9), rgba(3, 7, 18, 0.25));
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(167, 199, 255, 0.2);
-    z-index: 20;
+    background: linear-gradient(90deg, var(--nav-bg), rgba(8, 20, 40, 0.3));
+    backdrop-filter: blur(8px);
+    z-index: 5;
 }
 
 .home__nav.about__nav.login__nav .home__logo {
-    font-size: 1.1rem;
-    letter-spacing: 0.08em;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
 }
 
 .home__nav.about__nav.login__nav .home__nav-links {
     display: flex;
+    flex: 1;
+    gap: 0.4rem;
     flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
 }
 
 .home__nav.about__nav.login__nav .home__nav-link {
-    border: 1px solid transparent;
-    padding: 8px 16px;
+    padding: 0.3rem 0.7rem;
     border-radius: 999px;
-    color: var(--color-text-secondary);
     text-decoration: none;
+    color: var(--text-soft);
     font-weight: 600;
-    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-    background: transparent;
+    font-size: 0.95rem;
+    transition: background 0.2s, color 0.2s;
 }
 
 .home__nav.about__nav.login__nav .home__nav-link.is-active,
 .home__nav.about__nav.login__nav .home__nav-link:hover,
 .home__nav.about__nav.login__nav .home__nav-link:focus-visible {
-    border-color: rgba(115, 158, 201, 0.6);
-    background: rgba(115, 158, 201, 0.12);
-    color: var(--color-text-primary);
+    background: rgba(94, 166, 255, 0.2);
+    color: var(--text-strong);
 }
 
 .nav-login-cta {
@@ -139,6 +138,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
     gap: clamp(1rem, 3vw, 2rem);
+    margin-top: 2rem;
     align-items: start;
 }
 
