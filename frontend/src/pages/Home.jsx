@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import HomeGlobe from '../components/HomeGlobe';
+import UserNavMenu from '../components/UserNavMenu';
 import './Home.css';
 
 const sectionNav = [
@@ -62,9 +63,7 @@ function Home() {
           <Link to="/about" className="home__nav-link external">
             Acerca de Nosotros
           </Link>
-          <Link to="/login" className="home__nav-link nav-login-cta">
-            Iniciar sesión
-          </Link>
+          <UserNavMenu />
         </nav>
       </header>
 

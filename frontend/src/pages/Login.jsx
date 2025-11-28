@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Form } from 'react-bootstrap';
-import { login } from '../services/authService';
+import { login, validateLoginForm, validateEmail } from '../services/authService';
+import { useAuth } from '../context/AuthContext';
+import AuthSuccessModal from '../components/AuthSuccessModal';
+import UserNavMenu from '../components/UserNavMenu';
 import './Login.css';
 
 const NAV_LINKS = [
@@ -13,19 +16,48 @@ const NAV_LINKS = [
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login: authLogin, isAuthenticated } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState({});
+    const [serverError, setServerError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [loggedInUser, setLoggedInUser] = useState(null);
+
+    // Redirigir si ya está autenticado
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, navigate]);
 
     const handleChange = (e) => {
+        const { name, value } = e.target;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [name]: value
         });
-        setError(''); // Limpiar error al escribir
+        
+        // Limpiar error del campo al escribir
+        if (errors[name]) {
+            setErrors({ ...errors, [name]: '' });
+        }
+        setServerError('');
+    };
+
+    // Validación en tiempo real al salir del campo
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+        
+        if (name === 'email' && value) {
+            const emailValidation = validateEmail(value);
+            if (!emailValidation.isValid) {
+                setErrors({ ...errors, email: emailValidation.message });
+            }
+        }
     };
 
     const [activeSection, setActiveSection] = useState('hero');
@@ -48,28 +80,39 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setLoading(true);
+        setServerError('');
 
-        // Validación básica
-        if (!formData.email || !formData.password) {
-            setError('Por favor completa todos los campos');
-            setLoading(false);
+        // Validar formulario completo
+        const validation = validateLoginForm(formData);
+        if (!validation.isValid) {
+            setErrors(validation.errors);
             return;
         }
 
+        setLoading(true);
+        setErrors({});
+
         try {
             // Llamar al servicio de autenticación
-            await login(formData.email, formData.password);
+            const response = await login(formData.email, formData.password);
             
-            // Si login es exitoso, redirigir al dashboard
-            navigate('/dashboard');
+            // Guardar usuario en el contexto
+            authLogin(response.user);
+            setLoggedInUser(response.user);
+            
+            // Mostrar modal de éxito
+            setShowSuccessModal(true);
             
         } catch (err) {
-            setError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
+            setServerError(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSuccessModalClose = () => {
+        setShowSuccessModal(false);
+        navigate('/dashboard');
     };
 
     const scrollToSection = (sectionId) => {
@@ -78,6 +121,9 @@ const Login = () => {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
+
+    // Verificar si el formulario es válido para habilitar el botón
+    const isFormValid = formData.email && formData.password && Object.keys(errors).every(key => !errors[key]);
 
     return (
         <div className="login-page">
@@ -90,6 +136,7 @@ const Login = () => {
                             {link.label}
                         </Link>
                     ))}
+                    <UserNavMenu />
                 </nav>
             </header>
 
@@ -103,13 +150,13 @@ const Login = () => {
                             <p>Todos los campos son obligatorios.</p>
                         </header>
 
-                        {error && (
+                        {serverError && (
                             <div className="alert alert-danger" role="alert">
-                                {error}
+                                {serverError}
                             </div>
                         )}
 
-                        <Form onSubmit={handleSubmit}>
+                        <Form onSubmit={handleSubmit} noValidate>
                             <Form.Group className="mb-3">
                                 <Form.Label>Correo electrónico</Form.Label>
                                 <Form.Control
@@ -118,9 +165,18 @@ const Login = () => {
                                     placeholder="tu@email.com"
                                     value={formData.email}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     disabled={loading}
+                                    isInvalid={!!errors.email}
+                                    className={errors.email ? 'is-invalid' : ''}
                                 />
-                                <span className="microcopy">Usa el correo qeu tienes registrado.</span>
+                                {errors.email ? (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.email}
+                                    </Form.Control.Feedback>
+                                ) : (
+                                    <span className="microcopy">Usa el correo que tienes registrado.</span>
+                                )}
                             </Form.Group>
 
                             <Form.Group className="mb-3">
@@ -132,8 +188,16 @@ const Login = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     disabled={loading}
+                                    isInvalid={!!errors.password}
+                                    className={errors.password ? 'is-invalid' : ''}
                                 />
-                                <span className="microcopy">Debe tener al menos 8 caracteres y un símbolo.</span>
+                                {errors.password ? (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.password}
+                                    </Form.Control.Feedback>
+                                ) : (
+                                    <span className="microcopy">Ingresa tu contraseña.</span>
+                                )}
                             </Form.Group>
 
                             <div className="login-card__actions">
@@ -147,7 +211,7 @@ const Login = () => {
                                 variant="primary"
                                 type="submit"
                                 className="login-submit"
-                                disabled={loading}
+                                disabled={loading || !isFormValid}
                             >
                                 {loading ? 'Iniciando sesión…' : 'Iniciar sesión' }
                             </Button>
@@ -201,6 +265,14 @@ const Login = () => {
                     </div>
                 </section>
             </main>
+
+            {/* Modal de éxito */}
+            <AuthSuccessModal
+                isOpen={showSuccessModal}
+                onClose={handleSuccessModalClose}
+                userName={loggedInUser?.firstName || loggedInUser?.username || ''}
+                type="login"
+            />
         </div>
     );
 };

@@ -463,7 +463,12 @@ export default function Filter({
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    triggerSearch();
+                    // Si hay sugerencias con coordenadas, usar la primera
+                    if (locationSuggestions.length > 0 && locationSuggestions[0].lat && locationSuggestions[0].lon) {
+                      handleSuggestionSelect(locationSuggestions[0]);
+                    } else {
+                      triggerSearch();
+                    }
                   }
                 }}
                 aria-autocomplete="list"

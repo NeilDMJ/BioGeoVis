@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Form } from 'react-bootstrap';
-import { register } from '../services/authService';
+import { 
+    register, 
+    login,
+    validateRegisterForm, 
+    validateUsername, 
+    validateEmail, 
+    validateName, 
+    validatePassword,
+    validateConfirmPassword,
+    validateAge
+} from '../services/authService';
+import { useAuth } from '../context/AuthContext';
+import AuthSuccessModal from '../components/AuthSuccessModal';
+import UserNavMenu from '../components/UserNavMenu';
 import './Register.css';
 
 const NAV_LINKS = [
@@ -20,6 +33,7 @@ const ROLE_OPTIONS = [
 
 const Register = () => {
     const navigate = useNavigate();
+    const { login: authLogin, isAuthenticated } = useAuth();
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -29,8 +43,18 @@ const Register = () => {
         lastName: '',
         age: '',
     });
+    const [errors, setErrors] = useState({});
     const [status, setStatus] = useState({ message: '', tone: 'muted' });
     const [submitting, setSubmitting] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [registeredUser, setRegisteredUser] = useState(null);
+
+    // Redirigir si ya está autenticado
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, navigate]);
 
     useEffect(() => {
         const blocks = document.querySelectorAll('.scroll-animate');
@@ -48,60 +72,99 @@ const Register = () => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+        const newValue = type === 'checkbox' ? checked : value;
+        
         setFormData((prev) => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: newValue
         }));
+        
+        // Limpiar error del campo al escribir
+        if (errors[name]) {
+            setErrors((prev) => ({ ...prev, [name]: '' }));
+        }
         setStatus({ message: '', tone: 'muted' });
+    };
+
+    // Validación en tiempo real al salir del campo
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+        let validation = { isValid: true, message: '' };
+
+        switch (name) {
+            case 'username':
+                validation = validateUsername(value);
+                break;
+            case 'email':
+                validation = validateEmail(value);
+                break;
+            case 'firstName':
+                validation = validateName(value, 'El nombre');
+                break;
+            case 'lastName':
+                validation = validateName(value, 'El apellido');
+                break;
+            case 'password':
+                validation = validatePassword(value);
+                break;
+            case 'confirmPassword':
+                validation = validateConfirmPassword(formData.password, value);
+                break;
+            case 'age':
+                validation = validateAge(value);
+                break;
+            default:
+                break;
+        }
+
+        if (!validation.isValid) {
+            setErrors((prev) => ({ ...prev, [name]: validation.message }));
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validación de campos obligatorios
-        if (!formData.username || !formData.email || !formData.password || !formData.firstName || !formData.lastName) {
-            setStatus({ message: 'Por favor completa todos los campos obligatorios.', tone: 'error' });
-            return;
-        }
-
-        // Validación de contraseñas
-        if (formData.password !== formData.confirmPassword) {
-            setStatus({ message: 'Las contraseñas no coinciden.', tone: 'error' });
-            return;
-        }
-
-        // Validación de longitud de contraseña
-        if (formData.password.length < 8) {
-            setStatus({ message: 'La contraseña debe tener al menos 8 caracteres.', tone: 'error' });
+        // Validar formulario completo
+        const validation = validateRegisterForm(formData);
+        if (!validation.isValid) {
+            setErrors(validation.errors);
+            setStatus({ message: 'Por favor corrige los errores en el formulario.', tone: 'error' });
             return;
         }
 
         setSubmitting(true);
         setStatus({ message: 'Registrando usuario...', tone: 'muted' });
+        setErrors({});
 
         try {
             // Preparar datos para el backend
             const userData = {
-                username: formData.username,
-                email: formData.email,
+                username: formData.username.trim(),
+                email: formData.email.trim().toLowerCase(),
                 password: formData.password,
-                firstName: formData.firstName,
-                lastName: formData.lastName,
+                firstName: formData.firstName.trim(),
+                lastName: formData.lastName.trim(),
                 age: formData.age ? parseInt(formData.age) : null,
             };
 
             // Llamar al servicio de registro
-            await register(userData);
+            const registerResponse = await register(userData);
+
+            // Hacer login automático después del registro
+            const loginResponse = await login(formData.email, formData.password);
+            
+            // Guardar usuario en el contexto
+            authLogin(loginResponse.user);
+            setRegisteredUser(loginResponse.user);
 
             setStatus({
-                message: 'Registro exitoso. Redirigiendo al inicio de sesión...',
+                message: '¡Registro exitoso!',
                 tone: 'success'
             });
 
-            // Redirigir al login después de 2 segundos
-            setTimeout(() => {
-                navigate('/login');
-            }, 2000);
+            // Mostrar modal de éxito
+            setShowSuccessModal(true);
 
         } catch (error) {
             setStatus({
@@ -113,6 +176,21 @@ const Register = () => {
         }
     };
 
+    const handleSuccessModalClose = () => {
+        setShowSuccessModal(false);
+        navigate('/dashboard');
+    };
+
+    // Verificar si el formulario es válido para habilitar el botón
+    const isFormValid = 
+        formData.username && 
+        formData.email && 
+        formData.password && 
+        formData.confirmPassword && 
+        formData.firstName && 
+        formData.lastName &&
+        Object.keys(errors).every(key => !errors[key]);
+
     return (
         <div className="register-page">
             <header className="home__nav about__nav login__nav" aria-label="Navegación principal">
@@ -123,7 +201,7 @@ const Register = () => {
                             {link.label}
                         </Link>
                     ))}
-                    <Link to="/login" className="home__nav-link nav-login-cta">Iniciar sesión</Link>
+                    <UserNavMenu />
                 </nav>
             </header>
 
@@ -151,11 +229,6 @@ const Register = () => {
                     </div>
                     <div className="register-hero__status">
                         <article>
-                            <span>Tiempo de respuesta promedio</span>
-                            <strong>&lt; 18 h</strong>
-                            <p>Equipo de soporte continental.</p>
-                        </article>
-                        <article>
                             <span>Solicitudes aprobadas</span>
                             <strong>92%</strong>
                             <p>Cuando incluyen correo institucional válido.</p>
@@ -176,7 +249,7 @@ const Register = () => {
                             </div>
                         )}
 
-                        <Form onSubmit={handleSubmit}>
+                        <Form onSubmit={handleSubmit} noValidate>
                             <Form.Group controlId="username" className="mb-3">
                                 <Form.Label>Nombre de usuario*</Form.Label>
                                 <Form.Control
@@ -184,14 +257,22 @@ const Register = () => {
                                     name="username"
                                     value={formData.username}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     placeholder="usuario123"
                                     disabled={submitting}
                                     minLength={5}
                                     maxLength={20}
+                                    isInvalid={!!errors.username}
                                 />
-                                <Form.Text className="text-muted">
-                                    Entre 5 y 20 caracteres
-                                </Form.Text>
+                                {errors.username ? (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.username}
+                                    </Form.Control.Feedback>
+                                ) : (
+                                    <Form.Text className="text-muted">
+                                        Entre 5 y 20 caracteres, solo letras, números y guiones bajos
+                                    </Form.Text>
+                                )}
                             </Form.Group>
 
                             <Form.Group controlId="email" className="mb-3">
@@ -201,9 +282,20 @@ const Register = () => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     placeholder="usuario@ejemplo.com"
                                     disabled={submitting}
+                                    isInvalid={!!errors.email}
                                 />
+                                {errors.email ? (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.email}
+                                    </Form.Control.Feedback>
+                                ) : (
+                                    <Form.Text className="text-muted">
+                                        Ingresa un correo electrónico válido
+                                    </Form.Text>
+                                )}
                             </Form.Group>
 
                             <Form.Group controlId="firstName" className="mb-3">
@@ -213,11 +305,22 @@ const Register = () => {
                                     name="firstName"
                                     value={formData.firstName}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     placeholder="Tu nombre"
                                     disabled={submitting}
                                     minLength={2}
                                     maxLength={50}
+                                    isInvalid={!!errors.firstName}
                                 />
+                                {errors.firstName ? (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.firstName}
+                                    </Form.Control.Feedback>
+                                ) : (
+                                    <Form.Text className="text-muted">
+                                        Mínimo 2 caracteres, solo letras
+                                    </Form.Text>
+                                )}
                             </Form.Group>
 
                             <Form.Group controlId="lastName" className="mb-3">
@@ -227,11 +330,22 @@ const Register = () => {
                                     name="lastName"
                                     value={formData.lastName}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     placeholder="Tu apellido"
                                     disabled={submitting}
                                     minLength={2}
                                     maxLength={50}
+                                    isInvalid={!!errors.lastName}
                                 />
+                                {errors.lastName ? (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.lastName}
+                                    </Form.Control.Feedback>
+                                ) : (
+                                    <Form.Text className="text-muted">
+                                        Mínimo 2 caracteres, solo letras
+                                    </Form.Text>
+                                )}
                             </Form.Group>
 
                             <Form.Group controlId="age" className="mb-3">
@@ -240,11 +354,41 @@ const Register = () => {
                                     type="number"
                                     name="age"
                                     value={formData.age}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        // Limitar a máximo 3 dígitos
+                                        const value = e.target.value;
+                                        if (value.length <= 3) {
+                                            handleChange(e);
+                                        }
+                                    }}
+                                    onBlur={handleBlur}
                                     placeholder="18"
                                     disabled={submitting}
-                                    min={10}
+                                    min={0}
+                                    max={100}
+                                    maxLength={3}
+                                    onKeyDown={(e) => {
+                                        // Prevenir el signo menos y notación científica
+                                        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                                            e.preventDefault();
+                                        }
+                                        // Prevenir si ya hay 3 dígitos y no es tecla de control
+                                        const isControlKey = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
+                                        if (e.target.value.length >= 2 && !isControlKey) {
+                                            e.preventDefault();
+                                        }
+                                    }}
+                                    isInvalid={!!errors.age}
                                 />
+                                {errors.age ? (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.age}
+                                    </Form.Control.Feedback>
+                                ) : (
+                                    <Form.Text className="text-muted">
+                                        Edad entre 10 y 85 años
+                                    </Form.Text>
+                                )}
                             </Form.Group>
 
                             <Form.Group controlId="password" className="mb-3">
@@ -254,13 +398,21 @@ const Register = () => {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     placeholder="••••••••"
                                     disabled={submitting}
                                     minLength={8}
+                                    isInvalid={!!errors.password}
                                 />
-                                <Form.Text className="text-muted">
-                                    Mínimo 8 caracteres
-                                </Form.Text>
+                                {errors.password ? (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.password}
+                                    </Form.Control.Feedback>
+                                ) : (
+                                    <Form.Text className="text-muted">
+                                        Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 número
+                                    </Form.Text>
+                                )}
                             </Form.Group>
 
                             <Form.Group controlId="confirmPassword" className="mb-4">
@@ -270,12 +422,19 @@ const Register = () => {
                                     name="confirmPassword"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     placeholder="••••••••"
                                     disabled={submitting}
+                                    isInvalid={!!errors.confirmPassword}
                                 />
+                                {errors.confirmPassword && (
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.confirmPassword}
+                                    </Form.Control.Feedback>
+                                )}
                             </Form.Group>
 
-                            <Button type="submit" className="register-submit" disabled={submitting}>
+                            <Button type="submit" className="register-submit" disabled={submitting || !isFormValid}>
                                 {submitting ? 'Registrando...' : 'Crear cuenta'}
                             </Button>
 
@@ -302,13 +461,10 @@ const Register = () => {
                 </section>
 
                 <section className="register-faq scroll-animate" aria-label="Preguntas frecuentes">
-                    <article>
-                        <h4>¿Qué datos debo preparar?</h4>
-                        <p>Nombre oficial del proyecto, carta de apoyo del tutor (si aplica) y alcance geográfico aproximado.</p>
-                    </article>
+                  
                     <article>
                         <h4>¿Puedo sumar a mi equipo?</h4>
-                        <p>Sí, anexa los correos institucionales en el campo de motivación y enviaremos invitaciones grupales.</p>
+                        <p>Sí, anexa los correos institucionales en el campo de motivación.</p>
                     </article>
                     <article>
                         <h4>¿Qué pasa si no tengo cuenta institucional?</h4>
@@ -316,6 +472,14 @@ const Register = () => {
                     </article>
                 </section>
             </main>
+
+            {/* Modal de éxito */}
+            <AuthSuccessModal
+                isOpen={showSuccessModal}
+                onClose={handleSuccessModalClose}
+                userName={registeredUser?.firstName || registeredUser?.username || ''}
+                type="register"
+            />
         </div>
     );
 };

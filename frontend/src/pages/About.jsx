@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
+import UserNavMenu from '../components/UserNavMenu';
 import './About.css';
 
 const SECTIONS = [
@@ -61,7 +62,7 @@ function AboutPage() {
           <Link to="/explorer" className="mapview__nav-link">Explorador</Link>
                     <Link to="/dashboard" className="mapview__nav-link">Dashboard</Link>
                     
-                    <Link to="/login" className="mapview__nav-link nav-login-cta">Iniciar sesión</Link>
+                    <UserNavMenu />
         </nav>
       </header>
 

@@ -8,6 +8,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
+import UserNavMenu from '../components/UserNavMenu';
 import SpeciesInfoCard from '../components/SpeciesInfoCard';
 import {
   ensureSpeciesInfo,
@@ -93,6 +94,20 @@ function MapView() {
     ];
     mapRef.current.fitBounds(bounds, { padding: [40, 40], animate: true });
   }, [hasMarkers, markers]);
+
+  // Centrar el mapa cuando se navega con coordenadas específicas (sin marcadores)
+  useEffect(() => {
+    if (!mapRef.current || hasMarkers) return;
+    // Solo centrar si hay coordenadas en el state de navegación
+    if (location.state?.lat != null && location.state?.lng != null) {
+      const lat = parseFloat(location.state.lat);
+      const lng = parseFloat(location.state.lng);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        // Usar zoom más alto (10) para ver mejor la ubicación específica
+        mapRef.current.setView([lat, lng], 10, { animate: true });
+      }
+    }
+  }, [location.state?.lat, location.state?.lng, hasMarkers]);
 
   // Componente interno para clusters usando la API de react-leaflet
   function MarkerClusters({ points, onMarkerClick }) {
@@ -237,7 +252,7 @@ function MapView() {
           <Link to="/about" className="mapview__nav-link">
             Acerca de Nosotros
           </Link>
-          <Link to="/login" className="mapview__nav-link nav-login-cta">Iniciar sesión</Link>
+          <UserNavMenu />
         </nav>
         <div className="mapview__nav-actions">
           <Button variant="outline-light" size="sm" onClick={() => navigate('/explorer')}>
