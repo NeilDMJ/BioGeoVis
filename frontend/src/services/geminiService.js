@@ -33,9 +33,7 @@ Usa exactamente las siguientes claves dentro del objeto JSON:
 Asegúrate de que el JSON sea válido, que todos los campos estén completos y que "Curiosidades" sea un arreglo de cadenas de texto.`;
 };
 
-/**
- * Limpia y parsea la respuesta de Gemini
- */
+
 const parseGeminiResponse = (text) => {
   try {
     // Limpiar posibles caracteres de markdown
@@ -50,7 +48,7 @@ const parseGeminiResponse = (text) => {
       cleaned = cleaned.slice(0, -3);
     }
     cleaned = cleaned.trim();
-    
+
     return JSON.parse(cleaned);
   } catch (error) {
     console.error('Error parsing Gemini response:', error);
@@ -63,18 +61,16 @@ const parseGeminiResponse = (text) => {
  */
 export const getSpeciesDetailedInfo = async (scientificName, commonName = null, taxonomy = null, options = {}) => {
   const { signal } = options;
-  
+
   if (!scientificName) {
     return { error: 'Nombre científico requerido' };
   }
 
-  // Verificar cache
   const cacheKey = scientificName.toLowerCase().trim();
   if (INFO_CACHE.has(cacheKey)) {
     return INFO_CACHE.get(cacheKey);
   }
 
-  // Verificar API key
   if (!GEMINI_API_KEY) {
     console.warn('Gemini API key not configured');
     return {
@@ -91,10 +87,10 @@ export const getSpeciesDetailedInfo = async (scientificName, commonName = null, 
 
   try {
     const prompt = buildSpeciesPrompt(scientificName, commonName, taxonomy);
-    
+
     console.log('[Gemini] Iniciando petición para:', scientificName);
     console.log('[Gemini] API Key presente:', !!GEMINI_API_KEY);
-    
+
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
@@ -122,9 +118,9 @@ export const getSpeciesDetailedInfo = async (scientificName, commonName = null, 
 
     const data = await response.json();
     console.log('[Gemini] Response data:', data);
-    
+
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
     if (!generatedText) {
       console.error('[Gemini] No text in response');
       throw new Error('No se recibió respuesta de Gemini');
@@ -133,7 +129,7 @@ export const getSpeciesDetailedInfo = async (scientificName, commonName = null, 
     console.log('[Gemini] Generated text:', generatedText.substring(0, 200) + '...');
 
     const parsedInfo = parseGeminiResponse(generatedText);
-    
+
     if (parsedInfo) {
       // Guardar en cache
       INFO_CACHE.set(cacheKey, parsedInfo);
