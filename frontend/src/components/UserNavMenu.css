@@ -214,3 +214,19 @@
         }
     }
 }
+
+.user-nav-donate {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+.user-nav-donate:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #63398b 100%);
+    transform: translateX(4px) scale(1.02);
+}
+
+.user-nav-donate svg {
+    stroke: white;
+}

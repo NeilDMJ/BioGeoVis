@@ -23,6 +23,8 @@ services:
   #     MONGO_URI: ${MONGO_URI:-mongodb://admin:123123@mongo:27017/biogeovis?authSource=admin}
   #     MONGO_DB: ${MONGO_DB:-biogeovis}
   #     SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production-123456789}
+  #     STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_your_stripe_secret_key}
+  #     STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_your_webhook_secret}
   #   depends_on:
   #     - mongo
 
@@ -37,6 +39,7 @@ services:
   #     - /app/node_modules
   #   environment:
   #     - CHOKIDAR_USEPOLLING=true
+  #     - VITE_STRIPE_PUBLIC_KEY=${VITE_STRIPE_PUBLIC_KEY:-pk_test_your_stripe_public_key}
   #   depends_on:
   #     - backend
 

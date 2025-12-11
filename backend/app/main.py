@@ -1,26 +1,22 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.security import OAuth2PasswordRequestForm
 from .models import (
     Avistamiento,
     AnalyticsRequest,
     AnalyticsResponse,
     AnalyticsDetailRequest,
     AnalyticsDetailResponse,
-    UserRegister,
-    UserLogin,
-    UserResponse,
-    UserInDB,
-    Token,
 )
-from .auth import (
-    get_password_hash,
-    verify_password,
-    create_access_token,
-    get_current_user,
+from .stripe_service import (
+    DonationRequest,
+    PaymentIntentResponse,
+    create_payment_intent,
+    verify_webhook_signature,
+    handle_payment_intent_succeeded,
+    handle_payment_intent_failed,
 )
 import os
 from datetime import datetime, timedelta
@@ -195,98 +191,48 @@ def read_root():
     return {"Hello": "World"}
 
 
-################################ Autenticación y Usuarios #####################################
+################################ Stripe Donaciones #####################################
 
-@app.post("/api/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_user(user: UserRegister):
+@app.post("/api/donations/create-payment-intent", response_model=PaymentIntentResponse)
+async def create_donation_payment_intent(donation: DonationRequest):
     """
-    Registrar un nuevo usuario en la base de datos
+    Crear un PaymentIntent de Stripe para procesar una donación
     """
-    # Verificar si el email ya existe
-    existing_user = db.users.find_one({"email": user.email})
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El email ya está registrado"
-        )
-    
-    # Verificar si el username ya existe
-    existing_username = db.users.find_one({"username": user.username})
-    if existing_username:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El nombre de usuario ya está en uso"
-        )
-    
-    # Crear el usuario con contraseña hasheada
-    user_dict = user.model_dump(exclude={"password"})
-    user_dict["hashed_password"] = get_password_hash(user.password)
-    user_dict["registrationDate"] = datetime.utcnow()
-    user_dict["isActive"] = True
-    
-    # Insertar en la base de datos
-    result = db.users.insert_one(user_dict)
-    user_dict["_id"] = str(result.inserted_id)
-    
-    # Retornar el usuario sin la contraseña
-    return UserResponse(**user_dict)
+    return await create_payment_intent(donation)
 
 
-@app.post("/api/auth/login", response_model=Token)
-async def login_user(user_credentials: UserLogin):
+@app.post("/api/donations/webhook")
+async def stripe_webhook(request: Request):
     """
-    Iniciar sesión y obtener un token JWT
+    Webhook para recibir eventos de Stripe (pagos exitosos, fallidos, etc.)
+    
+    Para configurar en Stripe Dashboard:
+    1. Ve a Developers → Webhooks
+    2. Agrega endpoint: https://tu-dominio.com/api/donations/webhook
+    3. Selecciona eventos: payment_intent.succeeded, payment_intent.payment_failed
+    4. Copia el signing secret a STRIPE_WEBHOOK_SECRET
     """
-    # Buscar usuario por email
-    user = db.users.find_one({"email": user_credentials.email})
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
     
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    if not sig_header:
+        raise HTTPException(status_code=400, detail="Missing stripe-signature header")
     
-    # Verificar contraseña
-    if not verify_password(user_credentials.password, user["hashed_password"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # Verificar que el evento viene de Stripe
+    event = await verify_webhook_signature(payload, sig_header)
     
-    # Verificar si el usuario está activo
-    if not user.get("isActive", True):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario inactivo"
-        )
+    # Manejar diferentes tipos de eventos
+    event_type = event['type']
     
-    # Crear token de acceso
-    access_token_expires = timedelta(minutes=60 * 24 * 7)  # 7 días
-    access_token = create_access_token(
-        data={"sub": user["email"]},
-        expires_delta=access_token_expires
-    )
+    if event_type == 'payment_intent.succeeded':
+        payment_intent = event['data']['object']
+        await handle_payment_intent_succeeded(payment_intent)
+        
+    elif event_type == 'payment_intent.payment_failed':
+        payment_intent = event['data']['object']
+        await handle_payment_intent_failed(payment_intent)
     
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
-@app.get("/api/auth/me", response_model=UserResponse)
-async def get_current_user_info(current_user_email: str = Depends(get_current_user)):
-    """
-    Obtener información del usuario autenticado
-    """
-    user = db.users.find_one({"email": current_user_email})
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuario no encontrado"
-        )
-    
-    user["_id"] = str(user["_id"])
-    return UserResponse(**user)
+    return {"status": "success"}
 
 
 ################################ Avistamientos #####################################
